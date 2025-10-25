@@ -1,4 +1,3 @@
-// src/pages/Dashboard.tsx
 import { useEffect, useState } from "react";
 import { auth, signOut, onAuthStateChanged } from "../lib/firebase";
 import type { User } from "firebase/auth";
