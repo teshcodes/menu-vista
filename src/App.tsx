@@ -8,7 +8,6 @@ const Signup = lazy(() => import("./pages/Signup"));
 const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Menu = lazy(() => import("./pages/Menu"));
-const Analytics = lazy(() => import("./pages/analytics")); 
 
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -64,14 +63,14 @@ export default function App() {
             }
           />
 
-          <Route
+          {/* <Route
             path="/analytics"
             element={
               <ProtectedRoute>
                 <Analytics />
               </ProtectedRoute>
             }
-          />
+          /> */}
 
           {/* Catch all route for 404 */}
           <Route path="*" element={
