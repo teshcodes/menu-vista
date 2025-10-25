@@ -66,14 +66,21 @@ export default function Dashboard() {
     }
 
     return (
-        <div className="flex flex-col md:flex-row h-screen">
-            <SidebarNav />
-            <div className="min-h-screen p-7">
+        <div className="flex h-screen overflow-hidden">
+            {/* Sidebar - fixed/sticky */}
+            <div className="sticky top-0 h-screen w-64 shrink-0">
+                <SidebarNav />
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 overflow-y-auto bg-gray-50 p-7">
                 <div className="max-w-4xl mx-auto">
                     <div className="flex justify-between items-center mb-6">
                         <div>
                             <h1 className="text-2xl font-semibold">Dashboard</h1>
-                            <p className="text-gray-600">Welcome back, {user.displayName || user.email}!</p>
+                            <p className="text-gray-600">
+                                Welcome back, {user.displayName || user.email}!
+                            </p>
                         </div>
                         <button
                             onClick={handleLogout}
@@ -84,11 +91,11 @@ export default function Dashboard() {
                     </div>
 
                     <div className="bg-white rounded-lg shadow-lg p-6">
-                        {/* Dashboard content can go here */}
                         <p className="text-gray-600">Your account: {user.email}</p>
                     </div>
                 </div>
             </div>
         </div>
     );
+
 }

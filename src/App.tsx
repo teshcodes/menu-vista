@@ -9,6 +9,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Menu = lazy(() => import("./pages/Menu"));
 const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
+const Settings = lazy(() => import("./pages/Settings"));
 
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -72,6 +73,16 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+
 
           {/* Catch all route for 404 */}
           <Route path="*" element={
