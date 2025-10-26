@@ -2,6 +2,8 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/protectedRoute";
+import MenuPage from "./components/MenuPage";
+// import UploadMenuModal from "./components/UploadMenuModal"
 
 // Lazy load pages
 const Signup = lazy(() => import("./pages/Signup"));
@@ -79,6 +81,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/menupage"
+            element={
+              <ProtectedRoute>
+                <MenuPage />
               </ProtectedRoute>
             }
           />

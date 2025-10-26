@@ -8,17 +8,23 @@ export default function MenuPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  const handleSaveMenu = (menuData: { name: string; file: File | null }) => {
+    // Here you can implement the actual save logic
+    console.log('Saving menu:', menuData);
+    setShowModal(false);
+  };
+
   const toggleTips = () => setShowTips(!showTips);
   const closeTips = () => setShowTips(false);
 
   return (
     <div className="flex min-h-screen overflow-hidden">
-      {/* 🟢 Desktop Sidebar (Sticky) */}
+      {/* Desktop Sidebar (Sticky) */}
       <div className="hidden md:sticky md:top-0 md:h-screen md:w-64 md:shrink-0 md:block">
         <SidebarNav />
       </div>
 
-      {/* 🟣 Mobile Top Bar (Logo + Menu Button) */}
+      {/* Mobile Top Bar (Logo + Menu Button) */}
       <div className="md:hidden sticky top-0 z-50 bg-white shadow-sm flex items-center px-4 py-3">
         <img src="/logo.png" alt="Logo" className="h-8" />
         <button
@@ -29,7 +35,7 @@ export default function MenuPage() {
         </button>
       </div>
 
-      {/* 🟠 Mobile Sidebar (Slide-in) */}
+      {/* Mobile Sidebar (Slide-in) */}
       {sidebarOpen && (
         <>
           {/* Overlay */}
@@ -119,7 +125,7 @@ export default function MenuPage() {
               <span className="text-lg font-bold">+</span> Upload my first menu
             </button>
 
-            {showModal && <UploadMenuModal onClose={() => setShowModal(false)} /> }
+            {showModal && <UploadMenuModal onClose={() => setShowModal(false)} onSave={handleSaveMenu} />}
 
             {/* Tips Dropdown */}
             <div className="relative group">
