@@ -1,17 +1,36 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import SidebarNav from "../components/SidebarNav";
-import UploadMenuModal from "../components/UploadMenuModal"
+import UploadMenuModal from "../components/UploadMenuModal";
+import { useCreateMenu } from "../hooks/useCreateMenu";
 
 export default function MenuPage() {
   const [showTips, setShowTips] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const handleSaveMenu = (menuData: { name: string; file: File | null }) => {
-    // Here you can implement the actual save logic
-    console.log('Saving menu:', menuData);
-    setShowModal(false);
+  const { mutate: createMenuMutate, isLoading: creating } = useCreateMenu();
+
+  const handleSaveMenu = (menuData: { name: string; file: File | null; location?: string }) => {
+    // Build FormData for file upload
+    const formData = new FormData();
+    formData.append("name", menuData.name);
+    if (menuData.location) formData.append("location", menuData.location);
+    if (menuData.file) formData.append("file", menuData.file);
+
+    createMenuMutate(
+      { menuData: formData },
+      {
+        onSuccess: () => {
+          // Close modal and optionally show a toast / navigate
+          setShowModal(false);
+        },
+        onError: (err) => {
+          console.error("Create menu failed:", err);
+          // Keep modal open so the user can retry; you may show an error message
+        },
+      }
+    );
   };
 
   const toggleTips = () => setShowTips(!showTips);
@@ -125,7 +144,7 @@ export default function MenuPage() {
               <span className="text-lg font-bold">+</span> Upload my first menu
             </button>
 
-            {showModal && <UploadMenuModal onClose={() => setShowModal(false)} onSave={handleSaveMenu} />}
+            {showModal && <UploadMenuModal onClose={() => setShowModal(false)} onSave={handleSaveMenu} isSaving={creating} />}
 
             {/* Tips Dropdown */}
             <div className="relative group">

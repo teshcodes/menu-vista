@@ -1,84 +1,41 @@
 import { useState } from "react";
-import { FcGoogle } from "react-icons/fc";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  auth,
-  googleProvider,
-  signInWithPopup,
-  createUserWithEmailAndPassword,
-} from "../lib/firebase";
-import type { User } from "firebase/auth";
-import { FirebaseError } from "firebase/app";
-import { updateProfile } from "firebase/auth"; 
+import { useSignup } from "../hooks/useSignup";
 
 export default function Signup() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  // Save minimal user info locally 
-  const saveUserLocally = (u: User | null) => {
-    if (!u) return;
-    const userObj = {
-      uid: u.uid,
-      email: u.email,
-      displayName: u.displayName || formData.name,
-    };
-    localStorage.setItem("appUser", JSON.stringify(userObj));
-  };
+  const { mutate: signup, isPending } = useSignup();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // ✅ Handle email/password signup
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
 
-    try {
-      const cred = await createUserWithEmailAndPassword(
-        auth,
-        formData.email.trim(),
-        formData.password
-      );
-
-      //  Update Firebase user profile with name
-      await updateProfile(cred.user, {
-        displayName: formData.name.trim(),
-      });
-
-      saveUserLocally(cred.user);
-      navigate("/dashboard");
-    } catch (err: unknown) {
-      if (err instanceof FirebaseError) {
-        setError(err.message);
-      } else {
-        setError("Failed to create account");
+    signup(
+      {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password
+      },
+      {
+        onSuccess: (response) => {
+          if (response?.token) {
+            localStorage.setItem("authToken", response.token);
+          }
+          navigate("/dashboard", { replace: true });
+        },
+        onError: (err) => {
+          setError(err instanceof Error ? err.message : "Failed to create account");
+          localStorage.removeItem("authToken"); // Clear any existing token on error
+        }
       }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  //  Handle Google sign-in
-  const handleGoogle = async () => {
-    setError(null);
-    setLoading(true);
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      saveUserLocally(result.user);
-      navigate("/dashboard");
-    } catch (err: unknown) {
-      if (err instanceof FirebaseError) {
-        setError(err.message);
-      } else {
-        setError("Google sign-in failed");
-      }
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   return (
@@ -127,7 +84,7 @@ export default function Signup() {
               onChange={handleChange}
               required
               className="mt-1 w-full rounded-md border text-gray-700 border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#5C2E1E]"
-              placeholder="Enter your Gmail"
+              placeholder="Enter your email"
             />
           </div>
 
@@ -156,19 +113,9 @@ export default function Signup() {
           <button
             type="submit"
             className="w-full bg-[#5C2E1E] text-white py-2 rounded-md hover:bg-[#4a2f19] transition-colors duration-200"
-            disabled={loading}
+            disabled={isPending}
           >
-            {loading ? "Creating..." : "Create account"}
-          </button>
-
-          {/* Google Signup */}
-          <button
-            type="button"
-            onClick={handleGoogle}
-            className="w-full bg-white text-black border border-gray-300 py-2 rounded-md flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors duration-200"
-            disabled={loading}
-          >
-            <FcGoogle size={20} /> Sign up with Google
+            {isPending ? "Creating..." : "Create account"}
           </button>
         </form>
 

@@ -1,23 +1,21 @@
 import { useRef, useState } from "react";
 import { X, Trash2, RotateCcw, Image as ImageIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface UploadMenuModalProps {
   onClose: () => void;
-  onSave: (menu: { name: string; file: File | null }) => void;
+  onSave: (menu: { name: string; file: File | null; location?: string }) => void;
+  isSaving?: boolean;
 }
 
-export default function UploadMenuModal({ onClose, onSave }: UploadMenuModalProps) {
+export default function UploadMenuModal({ onClose, onSave, isSaving = false }: UploadMenuModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [menuName, setMenuName] = useState("");
+  const [location, setLocation] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const navigate = useNavigate();
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ name: menuName || "Untitled Menu", file });
+    onSave({ name: menuName || "Untitled Menu", file, location });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,6 +83,8 @@ export default function UploadMenuModal({ onClose, onSave }: UploadMenuModalProp
             </label>
             <input
               type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
               placeholder="Enter location"
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5C2E1E]"
             />
@@ -182,11 +182,11 @@ export default function UploadMenuModal({ onClose, onSave }: UploadMenuModalProp
               Cancel
             </button>
             <button
-              type="button"
-              onClick={() => {navigate("/menupage");}}
-              className="px-5 py-2 rounded-md bg-[#5C2E1E] text-white hover:bg-[#4b2415]"
+              type="submit"
+              disabled={isSaving}
+              className={`px-5 py-2 rounded-md text-white ${isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#5C2E1E] hover:bg-[#4b2415]'}`}
             >
-              Save
+              {isSaving ? 'Saving...' : 'Save'}
             </button>
           </div>
         </form>

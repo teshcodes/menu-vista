@@ -1,84 +1,38 @@
 // src/pages/Login.tsx
 import { useState } from "react";
-import { FcGoogle } from "react-icons/fc";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  auth,
-  googleProvider,
-  signInWithPopup,
-  signInWithEmailAndPassword,
-} from "../lib/firebase";
-import type { User } from "firebase/auth";
-import { FirebaseError } from "firebase/app";
+import { useLogin } from "../hooks/useLogin";
 
 export default function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  const saveUserLocally = (u: User | null) => {
-    if (!u) return;
-    const userObj = { uid: u.uid, email: u.email, displayName: u.displayName || null };
-    localStorage.setItem("appUser", JSON.stringify(userObj));
-  };
+  const { mutate: login, isLoading } = useLogin();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const getFriendlyError = (code: string): string => {
-    switch (code) {
-      case "auth/invalid-email":
-        return "Please enter a valid email address.";
-      case "auth/user-not-found":
-        return "No account found with this email.";
-      case "auth/wrong-password":
-        return "Incorrect password. Please try again.";
-      case "auth/too-many-requests":
-        return "Too many failed attempts. Please try again later.";
-      case "auth/network-request-failed":
-        return "Network error. Please check your connection.";
-      default:
-        return "Login failed. Please check your credentials and try again.";
-    }
-  };
-
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
-    try {
-      const cred = await signInWithEmailAndPassword(auth, formData.email.trim(), formData.password);
-      saveUserLocally(cred.user);
-      navigate("/dashboard");
-    } catch (err: unknown) {
-      if (err instanceof FirebaseError) {
-        setError(getFriendlyError(err.code));
-      } else {
-        setError("Something went wrong. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleGoogle = async () => {
-    setError(null);
-    setLoading(true);
-    try {
-      const res = await signInWithPopup(auth, googleProvider);
-      saveUserLocally(res.user);
-      navigate("/dashboard");
-    } catch (err: unknown) {
-      if (err instanceof FirebaseError) {
-        setError(err.message);
-      } else {
-        setError("Google sign-in failed");
+    login(
+      {
+        email: formData.email.trim(),
+        password: formData.password,
+      },
+      {
+        onSuccess: () => {
+          // token is stored by the hook; navigate to dashboard
+         console.log("it is successful in login page====")
+          navigate("/dashboard");
+        },
+        onError: (err) => {
+          setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+        },
       }
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   return (
@@ -127,18 +81,9 @@ export default function Login() {
           <button
             type="submit"
             className="w-full bg-[#5C2E1E] text-white py-2 rounded-md hover:bg-[#4a2f19] transition-colors duration-200"
-            disabled={loading}
+            disabled={isLoading}
           >
-            {loading ? "Logging in..." : "Log in"}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleGoogle}
-            className="w-full bg-white text-black border border-gray-300 py-2 rounded-md flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors duration-200"
-            disabled={loading}
-          >
-            <FcGoogle size={20} /> Continue with Google
+            {isLoading ? "Logging in..." : "Log in"}
           </button>
         </form>
 

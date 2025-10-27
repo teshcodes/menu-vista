@@ -1,69 +1,63 @@
 import { useEffect, useState } from "react";
-import { auth, signOut, onAuthStateChanged } from "../lib/firebase";
-import type { User } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import SidebarNav from "../components/SidebarNav"
+import SidebarNav from "../components/SidebarNav";
+import { clearEssenceAPI } from "../services/clearEssenceAPI";
+
+interface BusinessProfile {
+    name?: string;
+    email?: string;
+    displayName?: string;
+    
+}
 
 export default function Dashboard() {
     const navigate = useNavigate();
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<BusinessProfile | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser);
-            setLoading(false);
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+            navigate("/login", { replace: true });
+            return;
+        }
 
-            if (!currentUser) {
-                navigate('/login');
+        const fetchProfile = async () => {
+            try {
+                const data = await clearEssenceAPI.getBusinessProfile(token);
+                setUser(data);
+            } catch (err) {
+                console.error("Failed to fetch profile:", err);
+                // If token expired/invalid, remove and redirect to login
+                localStorage.removeItem("authToken");
+                navigate("/login", { replace: true });
+            } finally {
+                setLoading(false);
             }
-        });
+        };
 
-        return () => unsubscribe();
+        fetchProfile();
     }, [navigate]);
 
     const handleLogout = async () => {
+        const token = localStorage.getItem("authToken");
         try {
-            await signOut(auth);
-            localStorage.removeItem("appUser");
-            navigate("/login");
+            if (token) {
+                try {
+                    await clearEssenceAPI.logout(token);
+                } catch (err) {
+                    // ignore errors from logout call
+                    console.warn("Backend logout failed or not supported:", err);
+                }
+            }
+
+            // Clear client-side auth and redirect
+            localStorage.removeItem("authToken");
+            navigate("/login", { replace: true });
         } catch (err) {
             console.error("Error logging out:", err);
         }
     };
-
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-gray-600">
-                    <svg
-                        className="animate-spin h-8 w-8 mr-3"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                        />
-                        <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                    </svg>
-                </div>
-            </div>
-        );
-    }
-
-    if (!user) {
-        return null;
-    }
 
     return (
         <div className="flex h-screen overflow-hidden">
@@ -79,7 +73,7 @@ export default function Dashboard() {
                         <div>
                             <h1 className="text-2xl font-semibold">Dashboard</h1>
                             <p className="text-gray-600">
-                                Welcome back, {user.displayName || user.email}!
+                                {loading ? "Loading profile..." : `Welcome back, ${user?.displayName ?? user?.name ?? user?.email ?? "User"}`}!
                             </p>
                         </div>
                         <button
@@ -91,11 +85,10 @@ export default function Dashboard() {
                     </div>
 
                     <div className="bg-white rounded-lg shadow-lg p-6">
-                        <p className="text-gray-600">Your account: {user.email}</p>
+                        <p className="text-gray-600">Your account: {user?.email ?? "—"}</p>
                     </div>
                 </div>
             </div>
         </div>
     );
-
 }

@@ -1,24 +1,29 @@
-import { useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { onAuthStateChanged, auth } from "../lib/firebase";
-import type { User } from "firebase/auth";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
-    
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, []);
+    const checkAuth = () => {
+      const token = localStorage.getItem("authToken");
+      
+      if (!token) {
+        setIsAuthenticated(false);
+        navigate("/login", { replace: true });
+      } else {
+        setIsAuthenticated(true);
+      }
+      setIsLoading(false);
+    };
 
-  if (loading) {
+    checkAuth();
+  }, [navigate]);
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-gray-600">
@@ -47,7 +52,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
