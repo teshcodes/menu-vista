@@ -60,11 +60,9 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden">
-            {/* Sidebar - fixed/sticky */}
-            <div className="sticky top-0 h-screen w-64 shrink-0">
+        <div className="flex flex-col md:flex-row h-screen">
+            {/* Sidebar */}
                 <SidebarNav />
-            </div>
 
             {/* Main Content Area */}
             <div className="flex-1 overflow-y-auto bg-gray-50 p-7">

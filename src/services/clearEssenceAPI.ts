@@ -82,21 +82,22 @@ export interface MenuCreatePayload {
   location?: string;
 }
 
+
 export const createMenu = async (
   token: string,
   menuData: MenuCreatePayload | FormData
 ) => {
-  const isFormData = menuData instanceof FormData;
   const headers = {
     Authorization: `Bearer ${token}`,
-    ...(isFormData ? { "Content-Type": "multipart/form-data" } : {}),
+    ...(menuData instanceof FormData
+      ? { "Content-Type": "multipart/form-data" }
+      : { "Content-Type": "application/json" }),
   };
 
-  const response = await axiosInstance.post("/menu", menuData as unknown as Record<string, unknown>, {
-    headers,
-  });
+  const response = await axiosInstance.post("/menu", menuData, { headers });
   return response.data;
 };
+
 
 // Get all menus (with optional filters)
 export const getMenus = async (params?: Record<string, string | number>) => {
@@ -132,10 +133,19 @@ export const updateMenu = async (
 
 // Delete a menu
 export const deleteMenu = async (token: string, id: string) => {
-  const response = await axiosInstance.delete(`/menu/${id}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
+    try {
+        const response = await axiosInstance.delete(`/menu/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error(`Error deleting Menu with id ${id}:`, error.response?.data || error.message);
+            throw error.response?.data || error.message;
+        }
+        console.error(`Unknown error deleting Menu with id ${id}:`, error);
+        throw error;
+    }
 };
 
 // Grouped convenience object (optional) so callers can use clearEssenceAPI.signup(...) style

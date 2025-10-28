@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FileText, Image as ImageIcon, Trash2, Edit } from "lucide-react";
 import UploadMenuModal from "../components/UploadMenuModal";
+import DeleteMenuModal from "./DeleteMenuModal";
 
 interface Menu {
   id: number;
@@ -19,6 +20,8 @@ interface NewMenu {
 export default function MenuPage() {
   const [menus, setMenus] = useState<Menu[]>([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
   const hasMenus = menus.length > 0;
 
   const handleAddMenu = (newMenu: NewMenu) => {
@@ -37,23 +40,30 @@ export default function MenuPage() {
     setShowUploadModal(false);
   };
 
-  const handleDeleteMenu = (id: number) => {
-    setMenus(menus.filter(menu => menu.id !== id));
+  // ✅ Fixed: Proper delete handler
+  const handleDeleteMenu = (menu: Menu) => {
+    setSelectedMenu(menu);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteMenu = () => {
+    if (selectedMenu) {
+      setMenus(menus.filter((menu) => menu.id !== selectedMenu.id));
+      setShowDeleteModal(false);
+      setSelectedMenu(null);
+    }
   };
 
   const handleViewMenu = (menu: Menu) => {
-    // Implement view functionality
-    console.log('Viewing menu:', menu.name);
+    console.log("Viewing menu:", menu.name);
   };
 
   const handleEditMenu = (menu: Menu) => {
-    // Implement edit functionality
-    console.log('Editing menu:', menu.name);
+    console.log("Editing menu:", menu.name);
   };
 
   const handleQRCode = (menu: Menu) => {
-    // Implement QR code generation
-    console.log('Generating QR code for:', menu.name);
+    console.log("Generating QR code for:", menu.name);
   };
 
   return (
@@ -110,8 +120,9 @@ export default function MenuPage() {
                     <h2 className="text-sm font-medium text-gray-800">{menu.name}</h2>
                   </div>
 
-                  <button 
-                    onClick={() => handleDeleteMenu(menu.id)}
+                  {/* ✅ Fixed Trash Button */}
+                  <button
+                    onClick={() => handleDeleteMenu(menu)}
                     className="text-gray-400 hover:text-red-500 transition"
                   >
                     <Trash2 size={16} />
@@ -123,20 +134,20 @@ export default function MenuPage() {
                 </p>
 
                 <div className="flex justify-between mt-4">
-                  <button 
+                  <button
                     onClick={() => handleViewMenu(menu)}
                     className="text-sm text-gray-700 border border-gray-300 rounded-md px-3 py-1 hover:bg-gray-50 transition"
                   >
                     View
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleEditMenu(menu)}
                     className="flex items-center gap-1 text-sm border border-gray-300 rounded-md px-3 py-1 hover:bg-gray-50 transition"
                   >
                     <Edit size={14} />
                     Edit
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleQRCode(menu)}
                     className="text-sm bg-[#5C2E1E] text-white rounded-md px-3 py-1 hover:bg-[#4A2417] transition"
                   >
@@ -153,11 +164,25 @@ export default function MenuPage() {
       {showUploadModal && (
         <UploadMenuModal
           onClose={() => setShowUploadModal(false)}
-          onSave={(data) => handleAddMenu({
-            name: data.name,
-            file: data.file || undefined,
-            type: data.file?.type.includes('pdf') ? 'PDF' : 'IMG'
-          })}
+          onSave={(data) =>
+            handleAddMenu({
+              name: data.name,
+              file: data.file || undefined,
+              type: data.file?.type.includes("pdf") ? "PDF" : "IMG",
+            })
+          }
+        />
+      )}
+
+      {/* ✅ Delete Confirmation Modal */}
+      {showDeleteModal && selectedMenu && (
+        <DeleteMenuModal
+          menuName={selectedMenu.name}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setSelectedMenu(null);
+          }}
+          onConfirm={confirmDeleteMenu}
         />
       )}
     </div>

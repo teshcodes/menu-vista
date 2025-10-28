@@ -1,33 +1,36 @@
+// src/hooks/useCreateMenu.ts
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMenu } from "../services/clearEssenceAPI";
 import type { MenuCreatePayload } from "../services/clearEssenceAPI";
 
-type CreateMenuVariables = {
+interface CreateMenuVariables {
   menuData: MenuCreatePayload | FormData;
   token?: string | null;
-};
+}
 
 export const useCreateMenu = () => {
   const queryClient = useQueryClient();
-  const mutation = useMutation({
-    mutationFn: async (variables: CreateMenuVariables) => {
-      const { menuData, token: providedToken } = variables as CreateMenuVariables;
 
-      const token =
-        providedToken ??
+  const mutation = useMutation({
+    mutationFn: async ({ menuData, token }: CreateMenuVariables) => {
+      const storedToken =
+        token ??
         localStorage.getItem("token") ??
         localStorage.getItem("authToken") ??
         localStorage.getItem("accessToken");
 
-      if (!token) throw new Error("Missing auth token for createMenu");
+      if (!storedToken) throw new Error("Authentication required. Please log in again.");
 
-      const response = await createMenu(token, menuData);
-      return response;
+      return await createMenu(storedToken, menuData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["menus"] });
     },
+    onError: (error) => {
+      console.error("Menu creation failed:", error);
+    },
   });
+
   return {
     ...mutation,
     isLoading: mutation.status === "pending",

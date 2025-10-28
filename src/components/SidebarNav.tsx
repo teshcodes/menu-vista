@@ -82,7 +82,7 @@ export default function SidebarNav() {
 
     {/* ✅ Sidebar Drawer for Mobile & Static for Desktop */}
     <aside
-      className={`bg-[#F9FAFB] shadow-md fixed md:static top-0 left-0 h-full w-64 flex flex-col justify-between px-3 transition-transform duration-300 z-40
+      className={`bg-[#F9FAFB] shadow-md fixed md:static top-0 left-0 h-full w-64 flex flex-col justify-between px-3 transition-transform duration-300 z-50
       ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
     `}
     >
@@ -147,7 +147,7 @@ export default function SidebarNav() {
           />
 
           {showMenu && (
-            <div className="absolute bottom-14 left-0 bg-white shadow-lg rounded-lg py-2 w-56 z-50 border">
+            <div className="absolute bottom-11 -right-4 md:bottom-14 md:left-0 bg-white shadow-lg rounded-lg py-2 w-56 z-50 border">
               <div className="flex items-center gap-3 px-4 py-2 border-b">
                 <div className="bg-[#5C2E1E]/10 p-2 rounded-full">
                   <UserIcon className="text-[#5C2E1E]" size={20} />
