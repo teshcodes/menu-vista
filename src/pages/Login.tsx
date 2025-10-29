@@ -42,7 +42,7 @@ export default function Login() {
 >
       <div className="hidden md:block absolute inset-0 bg-black/50"></div>
 
-      <div className="relative z-10 bg-white w-full max-w-md rounded-2xl shadow-xl p-8">
+      <div className="relative z-10 bg-white w-full max-w-md rounded-2xl shadow-xl p-8 -mt-4">
         <div className="flex justify-center mb-6">
           <img src="/logo.png" alt="Logo" className="h-10 object-contain" />
         </div>
