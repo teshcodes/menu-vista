@@ -37,9 +37,9 @@ export default function Login() {
 
   return (
     <div
-      className="relative min-h-screen bg-cover bg-center flex items-center justify-center px-4"
-      style={{ backgroundImage: "url('/restaurant-image.jpg')" }}
-    >
+  className="fixed inset-0 bg-cover bg-center flex items-center justify-center px-4 overflow-hidden md:overflow-auto"
+  style={{ backgroundImage: "url('/restaurant-image.jpg')" }}
+>
       <div className="hidden md:block absolute inset-0 bg-black/50"></div>
 
       <div className="relative z-10 bg-white w-full max-w-md rounded-2xl shadow-xl p-8">

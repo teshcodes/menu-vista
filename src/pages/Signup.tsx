@@ -40,9 +40,9 @@ export default function Signup() {
 
   return (
     <div
-      className="relative min-h-screen bg-cover bg-center flex items-center justify-center px-4"
-      style={{ backgroundImage: "url('/restaurant-image.jpg')" }}
-    >
+  className="fixed inset-0 bg-cover bg-center flex items-center justify-center px-4 overflow-hidden md:overflow-auto"
+  style={{ backgroundImage: "url('/restaurant-image.jpg')" }}
+>
       {/* Background overlay for desktop */}
       <div className="hidden md:block absolute inset-0 bg-black/50"></div>
 
