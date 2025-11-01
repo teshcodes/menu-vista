@@ -22,8 +22,10 @@ export default function DeleteMenuModal({
       <div className="bg-white rounded-xl shadow-xl p-6 w-[90%] max-w-md relative">
         {/* Header */}
         <div className="flex items-center justify-center mb-4">
+          <div className="bg-red-50 p-4 rounded-full">
           <div className="bg-red-100 text-red-600 p-3 rounded-full">
             <FaExclamationCircle size={20} />
+          </div>
           </div>
         </div>
 
@@ -50,7 +52,7 @@ export default function DeleteMenuModal({
             className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-50"
             disabled={isDeleting}
           >
-            {isDeleting ? "Deleting..." : "Yes, Delete"}
+            {isDeleting ? "Deleting..." : "Delete"}
           </button>
         </div>
       </div>

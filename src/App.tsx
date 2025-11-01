@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/protectedRoute";
 import MenuPage from "./components/MenuPage";
+import { Toaster } from 'sonner';
 // import UploadMenuModal from "./components/UploadMenuModal"
 
 // Lazy load pages
@@ -109,6 +110,7 @@ export default function App() {
           } />
         </Routes>
       </Suspense>
+      <Toaster position="top-right" richColors />
     </Router>
   );
 }

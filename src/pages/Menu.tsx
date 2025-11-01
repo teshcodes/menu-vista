@@ -1,39 +1,60 @@
 import { useState } from "react";
 import SidebarNav from "../components/SidebarNav";
 import UploadMenuModal from "../components/UploadMenuModal";
+import DeleteMenuModal from "../components/DeleteMenuModal";
+import EditMenuModal from "../components/EditMenuModal";
+import MenuCard from "../components/MenuCard";
 import { useCreateMenu } from "../hooks/useCreateMenu";
 import { useDeleteMenu } from "../hooks/useDeleteMenu";
-import MenuCard from "../components/MenuCard";
-import DeleteMenuModal from "../components/DeleteMenuModal";
-// import { FaUpload } from "react-icons/fa";
+import { useUpdateMenu } from "../hooks/useUpdateMenu";
+import { useGetMenus } from "../hooks/useGetMenus";
+import { toast } from "sonner";
+
+interface MenuItem {
+  id?: string;
+  name: string;
+  fileType: "PDF" | "IMG";
+  fileSize: string;
+  date: string;
+  location?: string;
+  description?: string;
+  imageUrl?: string;
+}
 
 export default function Menu() {
+  // --- State ---
   const [showTips, setShowTips] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [filter, setFilter] = useState("All");
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const [filter, setFilter] = useState("All");
+  const [selectedMenu, setSelectedMenu] = useState<MenuItem | null>(null);
   const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
   const [selectedMenuName, setSelectedMenuName] = useState<string>("");
 
-
+  // --- Hooks ---
   const { mutate: createMenu, isLoading: creating } = useCreateMenu();
   const { mutate: deleteMenuMutation, isPending: deleting } = useDeleteMenu();
+  const { mutate: updateMenu, isPending: updating } = useUpdateMenu();
 
-  const menus: Array<{
-    name: string;
-    fileType: "PDF" | "IMG";
-    fileSize: string;
-    date: string;
-  }> = [
-      { name: "Buffet", fileType: "PDF", fileSize: "0.4MB", date: "Oct 5, 2025" },
-      { name: "Brunch", fileType: "IMG", fileSize: "0.1MB", date: "Oct 5, 2025" },
-      { name: "Dinner", fileType: "PDF", fileSize: "0.4MB", date: "Oct 5, 2025" },
-      { name: "Iftar", fileType: "IMG", fileSize: "0.7MB", date: "Oct 7, 2025" },
-    ];
 
+  const { data: menuData, isLoading, isError } = useGetMenus({
+    skip: 0,
+    take: 20,
+    location: "",
+  });
+  console.log(menuData, "this is data menu heer going to=====")
+
+  if (isLoading) return <p className="p-6">Loading menus...</p>;
+  if (isError) return <p className="p-6 text-red-600">Failed to fetch menus. Please check your token.</p>;
+
+
+
+  // --- Handlers ---
   const handleSaveMenu = (menuData: { name: string; file: File | null; location?: string }) => {
     if (!menuData.file) {
-      alert("Please upload a menu file before saving.");
+      toast.info("Please upload a menu file before saving.");
       return;
     }
 
@@ -51,16 +72,57 @@ export default function Menu() {
       { menuData: formData, token },
       {
         onSuccess: () => {
-          setShowModal(false);
-          alert("Menu uploaded successfully!");
+          setShowUploadModal(false);
+          toast.success("Menu uploaded successfully!");
         },
-        onError: (err) => {
+        onError: (err: unknown) => {
           console.error("Menu creation failed:", err);
-          alert("Failed to upload menu. Please check your token or try again.");
+          toast.error("Failed to upload menu. Please check your token or try again.");
         },
       }
     );
   };
+
+  const handleEditMenu = (menu: MenuItem) => {
+    setSelectedMenu(menu);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = (updatedData: {
+    name: string;
+    file?: File | null;
+    location?: string;
+    description?: string;
+  }) => {
+    if (!selectedMenu) return;
+
+    const formData = new FormData();
+    formData.append("name", updatedData.name || selectedMenu.name);
+    if (updatedData.location) formData.append("location", updatedData.location);
+    if (updatedData.description) formData.append("description", updatedData.description);
+    if (updatedData.file) formData.append("file", updatedData.file);
+
+    const token =
+      localStorage.getItem("authToken") ||
+      localStorage.getItem("token") ||
+      localStorage.getItem("accessToken");
+
+    updateMenu(
+      { id: selectedMenu.id!, data: formData, token },
+      {
+        onSuccess: () => {
+          toast.success("Menu updated successfully!");
+          setShowEditModal(false);
+          setSelectedMenu(null);
+        },
+        onError: (error) => {
+          console.error("Update failed:", error);
+          toast.error("Failed to update menu. Please check your token or try again.");
+        },
+      }
+    );
+  };
+
 
   const handleDeleteMenu = (menuId: string, menuName: string) => {
     setSelectedMenuId(menuId);
@@ -81,23 +143,18 @@ export default function Menu() {
           setShowDeleteModal(false);
           setSelectedMenuId(null);
           setSelectedMenuName("");
-        }
+          toast.success("Menu deleted successfully!");
+        },
       }
     );
   };
 
+
+  // --- Tips ---
   const toggleTips = () => setShowTips((prev) => !prev);
   const closeTips = () => setShowTips(false);
 
-  const renderUploadModal = () =>
-    showModal && (
-      <UploadMenuModal
-        onClose={() => setShowModal(false)}
-        onSave={handleSaveMenu}
-        isSaving={creating}
-      />
-    );
-
+  // --- Render Sections ---
   const renderUploadSection = () => (
     <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:bg-gray-50 transition mb-10 group">
       <div className="flex items-center justify-center h-full w-full mb-3">
@@ -105,33 +162,36 @@ export default function Menu() {
       </div>
 
       <p className="text-gray-500">
-        <span className="text-[#5C2E1B] cursor-pointer hover:underline">Click to Upload</span> or
-        drag and drop a new menu
+        <span
+          className="text-[#5C2E1B] cursor-pointer hover:underline"
+          onClick={() => setShowUploadModal(true)}
+        >
+          Click to Upload
+        </span>{" "}
+        or drag and drop a new menu
       </p>
+
       <p className="text-gray-500 text-sm mt-2">
         Upload your PDF or image menus and they'll be instantly available via QR codes.{" "}
         <span className="text-xs text-gray-400">Max Size: 10MB</span>
       </p>
 
-      {/* Upload Icon Button - visible on hover/focus for desktop (md+) with blurred backdrop */}
+      {/* Upload Icon Button */}
       <button
-        onClick={() => setShowModal(true)}
+        onClick={() => setShowUploadModal(true)}
         aria-label="Upload new menu"
-        className="hidden md:group-hover:flex md:group-focus:flex absolute bottom-4 right-4 items-center justify-center bg-white/60 backdrop-blur-sm shadow-xl rounded-lg p-3 hover:bg-white/70 transition"
+        className="hidden md:group-hover:flex absolute bottom-4 right-4 items-center justify-center bg-white/60 backdrop-blur-sm shadow-xl rounded-lg p-3 hover:bg-white/70 transition"
       >
         <img src="/file-icon.png" alt="Upload" className="w-6 h-6 filter saturate-150" />
       </button>
 
-      {/* Upload Icon Button - always visible on small screens with blurred background */}
-      <button
-        onClick={() => setShowModal(true)}
-        aria-label="Upload new menu"
-        className="flex md:hidden mt-4 mx-auto items-center justify-center bg-white/60 backdrop-blur-sm shadow-md p-2 rounded-full transition"
-      >
-        <img src="/file-icon.png" alt="Upload" className="w-6 h-6 filter saturate-150" />
-      </button>
-
-      {renderUploadModal()}
+      {showUploadModal && (
+        <UploadMenuModal
+          onClose={() => setShowUploadModal(false)}
+          onSave={handleSaveMenu}
+          isSaving={creating}
+        />
+      )}
     </div>
   );
 
@@ -141,7 +201,7 @@ export default function Menu() {
         <h2 className="text-xl font-bold text-gray-800 mb-4">
           My Menus{" "}
           <span className="ml-2 text-xs bg-[#EAD7C4] text-[#5C2E1E] px-2 py-0.5 rounded-md">
-            {menus.length}
+            {menuData?.data?.length}
           </span>
         </h2>
 
@@ -171,124 +231,89 @@ export default function Menu() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-        {menus.map((menu, i) => (
+        {menuData?.data?.map((menu: { id: string; name: string; fileType: "PDF" | "IMG"; fileSize: string; date: string }) => (
           <MenuCard
-            key={i}
+            key={menu.id}
             {...menu}
             onView={() => console.log("View menu:", menu.name)}
-            onEdit={() => console.log("Edit menu:", menu.name)}
+            onEdit={() => handleEditMenu(menu)}
             onQR={() => console.log("Generate QR for:", menu.name)}
-            onDelete={() => handleDeleteMenu(menu.name, menu.name)} // you can replace with actual menu id later
+            onDelete={() => handleDeleteMenu(menu.id || "", menu.name)}
           />
         ))}
+
       </div>
     </div>
   );
 
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center text-center py-16 relative">
-      {/* Background lines */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center -z-10 -mt-40">
-        <div className="bg-[#F2F4F7] w-20 h-3 rounded-xl"></div>
-        <div className="bg-[#F2F4F7] w-36 h-3 rounded-xl"></div>
-        <div className="bg-[#F2F4F7] ml-8 w-28 h-3 rounded-xl"></div>
-        <div className="bg-[#F2F4F7] w-36 mr-10 h-3 rounded-xl"></div>
-        <div className="flex gap-1">
-          <div className="bg-[#F2F4F7] w-30 h-3 rounded-xl"></div>
-          <div className="bg-[#F2F4F7] w-3 h-3 rounded-full"></div>
-        </div>
-      </div>
-
-      {/* Upload Icon */}
       <img src="/material-symbols.png" alt="Upload Icon" className="w-16 h-16 mb-4 opacity-90" />
-
-      {/* Text */}
       <h2 className="text-lg font-semibold text-gray-800">No Menus Yet</h2>
       <p className="text-gray-600 text-sm mt-2">
         Upload your PDF or image menus and they'll be instantly available via QR codes.{" "}
         <span className="text-xs text-gray-500">Max size: 10MB</span>
       </p>
 
-      {/* Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 mt-6 relative">
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => setShowUploadModal(true)}
           className="flex items-center justify-center gap-2 bg-[#5C2E1B] text-white px-5 py-2.5 rounded-md hover:bg-[#4b2415] transition"
         >
           <span className="text-lg font-bold">+</span> Upload my first menu
         </button>
 
-        {renderUploadModal()}
+        <button
+          className="bg-white border border-gray-300 text-gray-800 px-5 py-2.5 rounded-md hover:bg-gray-100 transition"
+          onClick={toggleTips}
+        >
+          Tips
+        </button>
 
-
-        {/* Tips Dropdown */}
-        <div className="relative group">
-          <button
-            className="bg-white border border-gray-300 text-gray-800 px-5 py-2.5 rounded-md hover:bg-gray-100 transition"
-            onClick={toggleTips}
-          >
-            Tips
-          </button>
-
-          <div
-            className={`absolute left-0 sm:left-auto sm:right-0 mt-2 w-80 bg-white shadow-lg rounded-md border border-gray-200 p-4 text-start transition-all duration-300 z-30
-              ${showTips
-                ? "opacity-100 visible pointer-events-auto"
-                : "opacity-0 invisible pointer-events-none"
-              }
-              sm:opacity-0 sm:invisible sm:group-hover:opacity-100 sm:group-hover:visible sm:group-hover:pointer-events-auto
-            `}
-          >
+        {showTips && (
+          <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-80 bg-white shadow-lg rounded-md border border-gray-200 p-4 text-start z-30">
             <ul className="list-disc list-inside text-sm text-gray-700 space-y-3">
-              <li>
-                <span className="font-bold">File size:</span> PDFs under 1MB load fastest on mobile
-                devices.
-              </li>
-              <li>
-                <span className="font-bold">Formats:</span> Supported file types are PDF, JPG, and
-                PNG.
-              </li>
-              <li>
-                <span className="font-bold">Naming:</span> Use clear menu names like "Breakfast" or
-                "Dinner Specials."
-              </li>
-              <li>
-                <span className="font-bold">Updating:</span> You can replace menu file anytime — QR
-                codes stay linked.
-              </li>
-              <li>
-                <span className="font-bold">Readability:</span> Use text that’s at least 12pt for
-                easy reading on mobile.
-              </li>
+              <li><b>File size:</b> PDFs under 1MB load fastest.</li>
+              <li><b>Formats:</b> PDF, JPG, PNG supported.</li>
+              <li><b>Naming:</b> Use clear names like “Breakfast”.</li>
+              <li><b>Updating:</b> Replace menu anytime — QR stays linked.</li>
+              <li><b>Readability:</b> Use text ≥12pt for mobile.</li>
             </ul>
           </div>
-        </div>
-
+        )}
         {showTips && <div className="fixed inset-0 z-20 sm:hidden" onClick={closeTips}></div>}
       </div>
+
+      {showUploadModal && (
+        <UploadMenuModal onClose={() => setShowUploadModal(false)} onSave={handleSaveMenu} isSaving={creating} />
+      )}
+
+
     </div>
+
+
   );
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
       <SidebarNav />
+
       <div className="flex-1 overflow-y-auto p-6 md:mt-0">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4 mt-4 md:mt-0">
           <div>
             <h1 className="text-3xl font-semibold text-black mb-2 md:mb-0">Menus</h1>
             <p className="text-gray-600 text-sm mt-1">
-              Upload a PDF or image of your menu. We’ll generate a menu link and QR code
-              automatically.
+              Upload a PDF or image of your menu. We’ll generate a menu link and QR code automatically.
             </p>
           </div>
 
-          {/* Search Input */}
+          {/* Search */}
           <div className="w-full md:w-64 relative">
             <input
               type="text"
               placeholder="Search menu"
-              className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5C2E1E] focus:border-transparent"
+              className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5C2E1E]"
             />
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -297,22 +322,18 @@ export default function Menu() {
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
             </svg>
           </div>
         </div>
 
-        {/* Upload zone */}
+        {/* Upload Zone */}
         {renderUploadSection()}
 
         {/* Menus or Empty State */}
-        {menus.length > 0 ? renderMenuGrid() : renderEmptyState()}
+        {menuData?.data?.length > 0 ? renderMenuGrid() : renderEmptyState()}
 
+        {/* Modals */}
         {showDeleteModal && (
           <DeleteMenuModal
             menuName={selectedMenuName}
@@ -320,6 +341,19 @@ export default function Menu() {
             onClose={() => setShowDeleteModal(false)}
             onConfirm={confirmDeleteMenu}
           />
+        )}
+
+        {showEditModal && selectedMenu && (
+          <EditMenuModal
+            onClose={() => setShowEditModal(false)}
+            onSave={handleSaveEdit}
+            isSaving={updating}
+            initialName={selectedMenu.name}
+            initialLocation={selectedMenu.location}
+            initialDescription={selectedMenu.description}
+            initialImageUrl={selectedMenu.imageUrl}
+          />
+
         )}
       </div>
     </div>

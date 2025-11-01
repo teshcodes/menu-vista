@@ -1,4 +1,3 @@
-// src/hooks/useCreateMenu.ts
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMenu } from "../services/clearEssenceAPI";
 import type { MenuCreatePayload } from "../services/clearEssenceAPI";

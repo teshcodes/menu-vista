@@ -1,14 +1,19 @@
+// pages/MenuPage.tsx
 import { useState } from "react";
 import { FileText, Image as ImageIcon, Trash2, Edit } from "lucide-react";
 import UploadMenuModal from "../components/UploadMenuModal";
 import DeleteMenuModal from "./DeleteMenuModal";
+import EditMenuModal from "./EditMenuModal";
+import { useUpdateMenu } from "../hooks/useUpdateMenu";
 
 interface Menu {
-  id: number;
+  id: string;
   name: string;
   type: "PDF" | "IMG";
   date: string;
   size: string;
+  location?: string;
+  description?: string;
 }
 
 interface NewMenu {
@@ -19,82 +24,144 @@ interface NewMenu {
 
 export default function MenuPage() {
   const [menus, setMenus] = useState<Menu[]>([]);
+  const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
+
+  // Modals
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+
   const hasMenus = menus.length > 0;
+  const { mutateAsync: updateMenu, isPending: updating } = useUpdateMenu();
+
+  /* -------------------- MENU ACTIONS -------------------- */
 
   const handleAddMenu = (newMenu: NewMenu) => {
     const dummyMenu: Menu = {
-      id: Date.now(),
-      name: newMenu?.name || `New Menu ${menus.length + 1}`,
-      type: newMenu?.type || "IMG",
+      id: Date.now().toString(),
+      name: newMenu.name || `New Menu ${menus.length + 1}`,
+      type: newMenu.type || "IMG",
       date: new Date().toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
       }),
-      size: newMenu?.file ? `${(newMenu.file.size / (1024 * 1024)).toFixed(1)}MB` : "0.7MB",
+      size: newMenu.file
+        ? `${(newMenu.file.size / (1024 * 1024)).toFixed(1)}MB`
+        : "0.7MB",
     };
-    setMenus([dummyMenu, ...menus]);
+
+    setMenus((prev) => [dummyMenu, ...prev]);
     setShowUploadModal(false);
   };
 
-  // ✅ Fixed: Proper delete handler
   const handleDeleteMenu = (menu: Menu) => {
     setSelectedMenu(menu);
     setShowDeleteModal(true);
   };
 
   const confirmDeleteMenu = () => {
-    if (selectedMenu) {
-      setMenus(menus.filter((menu) => menu.id !== selectedMenu.id));
-      setShowDeleteModal(false);
-      setSelectedMenu(null);
-    }
+    if (!selectedMenu) return;
+    setMenus((prev) => prev.filter((menu) => menu.id !== selectedMenu.id));
+    closeAllModals();
+  };
+
+  const handleEditMenu = (menu: Menu) => {
+    setSelectedMenu(menu);
+    setShowEditModal(true);
   };
 
   const handleViewMenu = (menu: Menu) => {
     console.log("Viewing menu:", menu.name);
   };
 
-  const handleEditMenu = (menu: Menu) => {
-    console.log("Editing menu:", menu.name);
-  };
-
   const handleQRCode = (menu: Menu) => {
     console.log("Generating QR code for:", menu.name);
   };
 
+  /* -------------------- UPDATE MENU -------------------- */
+
+  const handleSaveEdit = async (menuData: {
+    name: string;
+    file: File | null;
+    location?: string;
+    description?: string;
+  }) => {
+    if (!selectedMenu) return;
+
+    const formData = new FormData();
+    formData.append("name", menuData.name);
+    formData.append("description", menuData.description ?? "");
+    formData.append(
+      "imageUrl",
+      menuData.file ? menuData.file.name : selectedMenu.name
+    );
+    if (menuData.location) formData.append("location", menuData.location);
+    if (menuData.file)
+      formData.append("image", menuData.file, menuData.file.name);
+
+    try {
+      const res = await updateMenu({ id: selectedMenu.id, data: formData });
+      console.log("Updated menu:", res);
+
+      const updatedMenu: Menu = {
+        ...selectedMenu,
+        name: menuData.name,
+        location: menuData.location,
+        description: menuData.description,
+      };
+
+      setMenus((prev) =>
+        prev.map((m) => (m.id === selectedMenu.id ? updatedMenu : m))
+      );
+
+      closeAllModals();
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Failed to update menu:", error.message);
+      } else {
+        console.error("Failed to update menu:", error);
+      }
+      alert("Failed to update menu. See console for details.");
+    }
+
+  };
+
+  /* -------------------- HELPERS -------------------- */
+  const closeAllModals = () => {
+    setShowUploadModal(false);
+    setShowDeleteModal(false);
+    setShowEditModal(false);
+    setSelectedMenu(null);
+  };
+
+  /* -------------------- RENDER -------------------- */
   return (
     <div className="p-6 max-w-6xl mx-auto">
       {!hasMenus ? (
-        <>
-          {/* Blank Upload Page */}
-          <div className="text-center py-16">
-            <h1 className="text-2xl font-semibold text-gray-800 mb-2">Menus</h1>
-            <p className="text-gray-600 mb-6">
-              Upload a PDF or image of your menu. We’ll generate a menu link and QR code automatically.
-            </p>
-            <button
-              onClick={() => setShowUploadModal(true)}
-              className="bg-[#5C2E1E] text-white px-5 py-2.5 rounded-md hover:bg-[#4b2415] transition"
-            >
-              + Upload my first menu
-            </button>
-          </div>
-        </>
+        <div className="text-center py-16">
+          <h1 className="text-2xl font-semibold text-gray-800 mb-2">Menus</h1>
+          <p className="text-gray-600 mb-6">
+            Upload a PDF or image of your menu. We’ll generate a menu link and
+            QR code automatically.
+          </p>
+          <button
+            onClick={() => setShowUploadModal(true)}
+            className="bg-[#5C2E1E] text-white px-5 py-2.5 rounded-md hover:bg-[#4b2415] transition"
+          >
+            + Upload my first menu
+          </button>
+        </div>
       ) : (
         <>
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-semibold text-gray-800">Menus</h1>
               <p className="text-sm text-gray-500">
-                Upload a PDF or image of your menu. We’ll generate a link and QR code automatically.
+                Upload a PDF or image of your menu. We’ll generate a link and QR
+                code automatically.
               </p>
             </div>
-
             <button
               onClick={() => setShowUploadModal(true)}
               className="bg-[#5C2E1E] text-white px-4 py-2 rounded-md hover:bg-[#4A2417] transition"
@@ -103,7 +170,6 @@ export default function MenuPage() {
             </button>
           </div>
 
-          {/* Grid of Menus */}
           <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {menus.map((menu) => (
               <div
@@ -117,10 +183,11 @@ export default function MenuPage() {
                     ) : (
                       <ImageIcon size={18} className="text-[#5C2E1E]" />
                     )}
-                    <h2 className="text-sm font-medium text-gray-800">{menu.name}</h2>
+                    <h2 className="text-sm font-medium text-gray-800">
+                      {menu.name}
+                    </h2>
                   </div>
 
-                  {/* ✅ Fixed Trash Button */}
                   <button
                     onClick={() => handleDeleteMenu(menu)}
                     className="text-gray-400 hover:text-red-500 transition"
@@ -160,7 +227,8 @@ export default function MenuPage() {
         </>
       )}
 
-      {/* Upload Modal */}
+      {/* -------------------- MODALS -------------------- */}
+
       {showUploadModal && (
         <UploadMenuModal
           onClose={() => setShowUploadModal(false)}
@@ -174,15 +242,22 @@ export default function MenuPage() {
         />
       )}
 
-      {/* ✅ Delete Confirmation Modal */}
       {showDeleteModal && selectedMenu && (
         <DeleteMenuModal
           menuName={selectedMenu.name}
-          onClose={() => {
-            setShowDeleteModal(false);
-            setSelectedMenu(null);
-          }}
+          onClose={closeAllModals}
           onConfirm={confirmDeleteMenu}
+        />
+      )}
+
+      {showEditModal && selectedMenu && (
+        <EditMenuModal
+          onClose={closeAllModals}
+          onSave={handleSaveEdit}
+          isSaving={updating}
+          initialName={selectedMenu.name}
+          initialLocation={selectedMenu.location ?? ""}
+          initialDescription={selectedMenu.description ?? ""}
         />
       )}
     </div>

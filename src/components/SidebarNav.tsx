@@ -28,9 +28,11 @@ export default function SidebarNav() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("appUser");
+    //  const storedUser = localStorage.getItem("loggedInUser");
     if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
 
+  console.log(user, "this is user in sidebare")
   const truncateEmail = (email: string) => {
     const [localPart, domain] = email.split("@");
     return localPart.length > 10
