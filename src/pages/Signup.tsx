@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useGoogleRedirectLogin } from "../hooks/useGoogleRedirectLogin";
+// import jwtDecode from "jwt-decode";
 import { useSignup } from "../hooks/useSignup";
+import { toast } from "sonner";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -8,6 +11,7 @@ export default function Signup() {
   const [error, setError] = useState<string | null>(null);
 
   const { mutate: signup, isPending } = useSignup();
+  const { mutate: googleLoginRedirect } = useGoogleRedirectLogin();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,10 +32,12 @@ export default function Signup() {
           if (response?.token) {
             localStorage.setItem("authToken", response.token);
           }
+          toast.success("Account created successfully")
           navigate("/dashboard", { replace: true });
         },
         onError: (err) => {
           setError(err instanceof Error ? err.message : "Failed to create account");
+          toast.error("Failled to create account")
           localStorage.removeItem("authToken"); // Clear any existing token on error
         }
       }
@@ -40,9 +46,9 @@ export default function Signup() {
 
   return (
     <div
-  className="fixed inset-0 bg-cover bg-center flex items-center justify-center px-4 overflow-hidden md:overflow-auto"
-  style={{ backgroundImage: "url('/restaurant-image.jpg')" }}
->
+      className="fixed inset-0 bg-cover bg-center flex items-center justify-center px-4 overflow-hidden md:overflow-auto"
+      style={{ backgroundImage: "url('/restaurant-image.jpg')" }}
+    >
       {/* Background overlay for desktop */}
       <div className="hidden md:block absolute inset-0 bg-black/50"></div>
 
@@ -116,6 +122,13 @@ export default function Signup() {
             disabled={isPending}
           >
             {isPending ? "Creating..." : "Create account"}
+          </button>
+          <button
+            type="button"
+            onClick={() => googleLoginRedirect()}
+            className="w-full bg-[#5C2E1E] text-white py-2 rounded-md hover:bg-[#4a2f19] transition-colors duration-200"
+          >
+            Log in with Google
           </button>
         </form>
 

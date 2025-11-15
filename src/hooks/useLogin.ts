@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { loginUser } from "../services/clearEssenceAPI";
+import { toast } from "sonner";
 
 interface LoginCredentials {
   email: string;
@@ -44,6 +45,7 @@ export const useLogin = () => {
     },
     onError: (error) => {
       console.error("Login failed:", error);
+      toast.error("Login failed");
       localStorage.removeItem("authToken");
       localStorage.removeItem("token");
     },

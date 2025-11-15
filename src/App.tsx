@@ -1,10 +1,9 @@
 // src/App.tsx
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/protectedRoute";
 import MenuPage from "./components/MenuPage";
-import { Toaster } from 'sonner';
-// import UploadMenuModal from "./components/UploadMenuModal"
+import { Toaster } from "sonner";
 
 // Lazy load pages
 const Signup = lazy(() => import("./pages/Signup"));
@@ -13,7 +12,9 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Menu = lazy(() => import("./pages/Menu"));
 const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
 const Settings = lazy(() => import("./pages/Settings"));
+const GoogleCallback = lazy(() => import("./pages/GoogleCallback"));
 
+// Loading Spinner Component
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="text-gray-600">
@@ -46,10 +47,15 @@ export default function App() {
     <Router>
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
+          {/* Auth Routes */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
 
+          {/* Google OAuth Callback */}
+          <Route path="/auth/google/callback" element={<GoogleCallback />} />
+
+          {/* Protected Routes */}
           <Route
             path="/dashboard"
             element={
@@ -86,7 +92,8 @@ export default function App() {
             }
           />
 
-          <Route path="/menupage"
+          <Route
+            path="/menupage"
             element={
               <ProtectedRoute>
                 <MenuPage />
@@ -94,22 +101,28 @@ export default function App() {
             }
           />
 
-
-          {/* Catch all route for 404 */}
-          <Route path="*" element={
-            <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-              <h1 className="text-2xl font-semibold text-gray-800">Page Not Found</h1>
-              <p className="text-gray-600">The page you're looking for doesn't exist.</p>
-              <button
-                onClick={() => window.history.back()}
-                className="px-4 py-2 bg-[#5C2E1E] text-white rounded hover:bg-[#4a2f19] transition-colors"
-              >
-                Go Back
-              </button>
-            </div>
-          } />
+          {/* 404 Fallback */}
+          <Route
+            path="*"
+            element={
+              <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+                <h1 className="text-2xl font-semibold text-gray-800">Page Not Found</h1>
+                <p className="text-gray-600">
+                  The page you're looking for doesn't exist.
+                </p>
+                <button
+                  onClick={() => window.history.back()}
+                  className="px-4 py-2 bg-[#5C2E1E] text-white rounded hover:bg-[#4a2f19] transition-colors"
+                >
+                  Go Back
+                </button>
+              </div>
+            }
+          />
         </Routes>
       </Suspense>
+
+      {/* Global Notifications */}
       <Toaster position="top-right" richColors />
     </Router>
   );

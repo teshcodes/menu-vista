@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateMenu } from "../services/clearEssenceAPI";
 import type { MenuUpdatePayload } from "../services/clearEssenceAPI";
+import { toast } from "sonner";
 
 type UpdateMenuVariables = {
   id: string;
@@ -29,8 +30,12 @@ export const useUpdateMenu = () => {
       return response;
     },
     onSuccess: () => {
-      // Re-fetch menus (adjust key according to your queries)
-      queryClient.invalidateQueries({ queryKey: ["menus"] });
+      toast.success('Menu created successfully!');
+      queryClient.invalidateQueries({ queryKey: ["menus"], exact: false });
+    },
+    onError: (error) => {
+      console.error("Menu update failed:", error);
+      toast.error("Failed to update menu. Please try again.");
     },
   });
 };

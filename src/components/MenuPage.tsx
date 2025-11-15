@@ -5,6 +5,7 @@ import UploadMenuModal from "../components/UploadMenuModal";
 import DeleteMenuModal from "./DeleteMenuModal";
 import EditMenuModal from "./EditMenuModal";
 import { useUpdateMenu } from "../hooks/useUpdateMenu";
+import { toast } from "sonner";
 
 interface Menu {
   id: string;
@@ -122,7 +123,7 @@ export default function MenuPage() {
       } else {
         console.error("Failed to update menu:", error);
       }
-      alert("Failed to update menu. See console for details.");
+      toast.error("Failed to update menu. See console for details.");
     }
 
   };

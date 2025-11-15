@@ -64,48 +64,62 @@ export const changePassword = async (
 /* -------------------- MENU TYPES -------------------- */
 
 export interface MenuCreatePayload {
-  name: string;
-  type?: "PDF" | "IMG";
+  name?: string;
+  category?: string;
+  description?: string;
+  type?: string;
   file?: File | null;
-  link?: string;
-  size?: string;
-  location?: string;
 }
+
 
 export type MenuUpdatePayload = Partial<MenuCreatePayload> | FormData;
 
 /* -------------------- MENU MANAGEMENT -------------------- */
 
 // Create Menu
-export const createMenu = async (
-  token: string,
-  menuData: MenuCreatePayload | FormData
-) => {
-  const isFormData = menuData instanceof FormData;
-
-  const { data } = await axiosInstance.post("/menu", menuData, {
+export const createMenu = async (token: string, formData: FormData) => {
+  const { data } = await axiosInstance.post("/menu", formData, {
     headers: {
       Authorization: `Bearer ${token}`,
-      "Content-Type": isFormData
-        ? "multipart/form-data"
-        : "application/json",
+      "Content-Type": "multipart/form-data",
     },
   });
 
   return data;
 };
+
 
 // Get All Menus
-export const getMenus = async (params?: Record<string, string | number>, token?: string,) => {
+export const getMenus = async (
+  params?: Record<string, string | number | undefined>,
+  token?: string
+) => {
+  if (!token) {
+    throw new Error("Missing auth token for getMenus");
+  }
+
+  
+  const filteredParams: Record<string, string | number> = {};
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== "" && value !== undefined && value !== null) {
+        filteredParams[key] = value;
+      }
+    });
+  }
+
   const { data } = await axiosInstance.get("/menu/user", {
-    params,
+    params: filteredParams,
     headers: {
       Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
+      Accept: "application/json",
     },
   });
+
+  console.log("Menus RESPONSE =====>", data)
   return data;
 };
+
 
 // Get Menu by ID
 export const getMenuById = async (id: string, token?:string) => {
@@ -174,4 +188,15 @@ export const clearEssenceAPI = {
   deleteMenu,
 };
 
-export default axiosInstance;
+/* -------------------- GOOGLE AUTH (Redirect Flow) -------------------- */
+export const getGoogleAuthUrl = async () => {
+  // This just returns your backend’s Google login URL
+  return "https://clear-essence-backend.onrender.com/api/v1/auth/google";
+};
+
+// This one handles the callback, when your backend redirects back
+export const handleGoogleCallback = async (queryString: string) => {
+  const { data } = await axiosInstance.get(`/auth/google/callback${queryString}`);
+  return data;
+};
+

@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useLogin } from "../hooks/useLogin";
+import { useGoogleRedirectLogin } from "../hooks/useGoogleRedirectLogin";
+import { toast } from "sonner";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,13 +11,14 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
 
   const { mutate: login, isLoading } = useLogin();
+  const { mutate: googleLoginRedirect } = useGoogleRedirectLogin();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setError("");
 
     login(
       {
@@ -25,11 +28,12 @@ export default function Login() {
       {
         onSuccess: () => {
           // token is stored by the hook; navigate to dashboard
-         console.log("it is successful in login page====")
+          toast.success("login successfully")
           navigate("/dashboard");
         },
-        onError: (err) => {
-          setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+        onError: () => {
+          setError( "Something went wrong. Please try again.");
+          toast.error("Failed to login")
         },
       }
     );
@@ -37,9 +41,9 @@ export default function Login() {
 
   return (
     <div
-  className="fixed inset-0 bg-cover bg-center flex items-center justify-center px-4 overflow-hidden md:overflow-auto"
-  style={{ backgroundImage: "url('/restaurant-image.jpg')" }}
->
+      className="fixed inset-0 bg-cover bg-center flex items-center justify-center px-4 overflow-hidden md:overflow-auto"
+      style={{ backgroundImage: "url('/restaurant-image.jpg')" }}
+    >
       <div className="hidden md:block absolute inset-0 bg-black/50"></div>
 
       <div className="relative z-10 bg-white w-full max-w-md rounded-2xl shadow-xl p-8 -mt-4">
@@ -76,7 +80,7 @@ export default function Login() {
             />
           </div>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && <p className="text-red-500 text-sm -mt-2">{error}</p>}
 
           <button
             type="submit"
@@ -84,6 +88,13 @@ export default function Login() {
             disabled={isLoading}
           >
             {isLoading ? "Logging in..." : "Log in"}
+          </button>
+          <button
+            type="button"
+            onClick={() => googleLoginRedirect()}
+            className="w-full bg-[#5C2E1E] text-white py-2 rounded-md hover:bg-[#4a2f19] transition-colors duration-200"
+          >
+            Log in with Google
           </button>
         </form>
 

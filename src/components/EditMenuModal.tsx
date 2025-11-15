@@ -7,41 +7,44 @@ interface EditMenuModalProps {
   onSave: (menuData: {
     name: string;
     file: File | null;
-    location?: string;
+    type?: string;
     description?: string;
     image?: string;
   }) => void;
   isSaving?: boolean;
   initialName?: string;
-  initialLocation?: string;
+  initialType?: string;
   initialDescription?: string;
   initialImageUrl?: string;
 }
+
+const MENU_TYPES = ["Food", "Snacks", "Drinks", "Dessert", "Other"];
 
 export default function EditMenuModal({
   onClose,
   onSave,
   isSaving = false,
   initialName = "",
-  initialLocation = "",
+  initialType = "Food",
   initialDescription = "",
   initialImageUrl = "",
 }: EditMenuModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [menuName, setMenuName] = useState(initialName);
-  const [location, setLocation] = useState(initialLocation);
+  const [type, setType] = useState(initialType);
   const [description, setDescription] = useState(initialDescription);
   const [imageUrl, setImageUrl] = useState(initialImageUrl);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
 
   // Sync state when modal opens
   useEffect(() => {
     setMenuName(initialName);
-    setLocation(initialLocation);
+    setType(initialType);
     setDescription(initialDescription);
     setImageUrl(initialImageUrl);
-  }, [initialName, initialLocation, initialDescription, initialImageUrl]);
+  }, [initialName, initialType, initialDescription, initialImageUrl]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,10 +54,15 @@ export default function EditMenuModal({
       return;
     }
 
+    if (file && file.size / (1024 * 1024) > 10) {
+      toast.error("File size must be 10 MB or less");
+      return;
+    }
+
     onSave({
       name: menuName.trim(),
       file,
-      location: location?.trim() || "",
+      type: type || "Other",
       description: description?.trim() || "",
       image: imageUrl || "",
     });
@@ -63,7 +71,7 @@ export default function EditMenuModal({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] ?? null;
     setFile(selectedFile);
-    setImageUrl(""); // clear old image if a new file is selected
+    setImageUrl("");
 
     if (selectedFile) {
       let progress = 0;
@@ -107,16 +115,33 @@ export default function EditMenuModal({
             />
           </div>
 
-          {/* Location */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Enter location"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5C2E1E]"
-            />
+          {/* Type Selector */}
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+            <button
+              type="button"
+              onClick={() => setShowTypeDropdown((prev) => !prev)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-left text-sm focus:outline-none focus:ring-2 focus:ring-[#5C2E1E] flex justify-between items-center"
+            >
+              {type}
+              <span className="ml-2 text-gray-500">▼</span>
+            </button>
+            {showTypeDropdown && (
+              <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                {MENU_TYPES.map((t) => (
+                  <li
+                    key={t}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setType(t);
+                      setShowTypeDropdown(false);
+                    }}
+                  >
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* File Upload / Image Preview */}
@@ -130,7 +155,6 @@ export default function EditMenuModal({
               onChange={handleFileChange}
             />
 
-            {/* Show existing image if available */}
             {!file && imageUrl ? (
               <div className="border border-gray-200 rounded-md p-3 flex flex-col items-center">
                 <img

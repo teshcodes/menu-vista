@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { auth, signOut } from "../lib/firebase";
+import { toast } from "sonner"
 
 interface UserData {
   displayName?: string;
@@ -44,9 +45,11 @@ export default function SidebarNav() {
     try {
       await signOut(auth);
       localStorage.removeItem("appUser");
+      toast.success("logged out successfully")
       navigate("/login");
     } catch (err) {
       console.error("Error logging out:", err);
+      toast.error("Error logging out")
     }
   };
 
@@ -68,7 +71,7 @@ export default function SidebarNav() {
 
   return (
   <>
-    {/* ✅ Mobile Top Bar (Logo + Menu Icon, Sticky) */}
+    {/* Mobile Top Bar (Logo + Menu Icon, Sticky) */}
     <div className="md:hidden flex items-center justify-between px-4 py-3 shadow-sm sticky top-0 z-50">
       <div className="flex items-center gap-2">
         <img src="/logo.png" alt="Logo" className="h-8 w-auto" />
@@ -82,7 +85,7 @@ export default function SidebarNav() {
       </button>
     </div>
 
-    {/* ✅ Sidebar Drawer for Mobile & Static for Desktop */}
+    {/* Sidebar Drawer for Mobile & Static for Desktop */}
     <aside
       className={`bg-[#F9FAFB] shadow-md fixed md:static top-0 left-0 h-full w-64 flex flex-col justify-between px-3 transition-transform duration-300 z-50
       ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
