@@ -257,7 +257,6 @@ export default function MenuPage() {
           onSave={handleSaveEdit}
           isSaving={updating}
           initialName={selectedMenu.name}
-          initialLocation={selectedMenu.location ?? ""}
           initialDescription={selectedMenu.description ?? ""}
         />
       )}

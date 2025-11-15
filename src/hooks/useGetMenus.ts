@@ -9,6 +9,17 @@ interface GetMenusParams {
   category?: string;
 }
 
+export interface BackendMenuResponse {
+  status: string;
+  statusCode: number;
+  data: {
+    data: BackendMenu[];
+    total: number;
+    page: number;
+    size: number;
+  };
+}
+
 interface BackendMenu {
   id?: string;
   name: string;
@@ -20,22 +31,41 @@ interface BackendMenu {
   category?: string;
 }
 
+// What the hook returns:
+export interface MappedMenu {
+  id?: string;
+  name: string;
+  type: "PDF" | "IMG";
+  fileSize: number;
+  createdAt: string;
+  date: string;
+  description: string;
+  imageUrl: string;
+  category: string;
+}
+
+export interface MenuResult {
+  menus: MappedMenu[];
+  total: number;
+  page: number;
+  size: number;
+}
 
 export const useGetMenus = (params?: GetMenusParams) => {
-  return useQuery({
+  return useQuery<MenuResult>({
     queryKey: ["menus", params],
     queryFn: async () => {
-      // Get token from localStorage
+      // Token
       const token =
         localStorage.getItem("authToken") ??
         localStorage.getItem("token") ??
-        localStorage.getItem("accessToken")
+        localStorage.getItem("accessToken");
 
       if (!token) {
         throw new Error("No auth token found. Please log in.");
       }
 
-      // Build query params
+      // Query Params
       const queryParams = {
         skip: params?.skip ?? 0,
         take: params?.take ?? 20,
@@ -44,13 +74,16 @@ export const useGetMenus = (params?: GetMenusParams) => {
         ...(params?.search ? { search: params.search } : {}),
       };
 
-      const response = await getMenus(queryParams, token);
-      console.log("GET MENUS RAW RESPONSE: =====>", response);
+      const response: BackendMenuResponse = await getMenus(queryParams, token);
+      console.log("GET MENUS RAW RESPONSE =====>", response);
 
-      const menuArray = Array.isArray(response?.data?.data) ? response.data.data : [];
+      const backendData = response?.data;
 
-      // Map backend response to our MenuItem interface
-      return menuArray.map((menu: BackendMenu) => ({
+      const menuArray = Array.isArray(backendData?.data)
+        ? backendData.data
+        : [];
+
+      const mappedMenus: MappedMenu[] = menuArray.map((menu: BackendMenu) => ({
         id: menu.id,
         name: menu.name,
         type: menu.type || "PDF",
@@ -62,7 +95,14 @@ export const useGetMenus = (params?: GetMenusParams) => {
         category: menu.category || "",
       }));
 
+      return {
+        menus: mappedMenus,
+        total: backendData?.total ?? 0,
+        page: backendData?.page ?? 1,
+        size: backendData?.size ?? 20,
+      };
     },
+
     retry: 1,
     refetchOnWindowFocus: false,
   });
