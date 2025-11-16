@@ -93,6 +93,7 @@ export default function Login() {
             type="button"
             onClick={() => googleLoginRedirect()}
             className="w-full bg-[#5C2E1E] text-white py-2 rounded-md hover:bg-[#4a2f19] transition-colors duration-200"
+            disabled
           >
             Log in with Google
           </button>

@@ -28,8 +28,8 @@ export default function MenuCard({
         fileType === "PDF"
           ? "/type-icons.png"
           : fileType === "IMG"
-          ? "/type-icons-2.png"
-          : "/type-icons-3.png"
+            ? "/type-icons-2.png"
+            : "/type-icons-3.png"
       }
       alt={`${fileType} icon`}
       className="object-contain"
@@ -70,31 +70,37 @@ export default function MenuCard({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-between items-center gap-2 mt-3">
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-2 mt-3">
+
+        {/* View Button */}
         <button
           onClick={onView}
-          className="flex-1 flex items-center justify-center gap-1 border border-gray-300 rounded-md py-1.5 px-1 text-xs text-gray-700 hover:bg-gray-100 transition"
+          className="flex items-center justify-center gap-1 border border-gray-300 rounded-md py-1.5 px-1 text-xs text-gray-700 hover:bg-gray-100 transition"
         >
           <FaEye size={15} />
           View
         </button>
 
+        {/* Edit Button */}
         <button
           onClick={onEdit}
-          className="flex-1 flex items-center justify-center gap-1 border border-gray-300 rounded-md py-1.5 px-1 text-xs text-gray-700 hover:bg-gray-100 transition"
+          className="flex items-center justify-center gap-1 border border-gray-300 rounded-md py-1.5 px-1 text-xs text-gray-700 hover:bg-gray-100 transition"
         >
           <FaEdit size={15} />
           Edit
         </button>
 
+        {/* QR Button — takes full width on md screens */}
         <button
           onClick={onQR}
-          className="flex-1 flex items-center justify-center gap-1 bg-[#5C2E1E] text-white rounded-md py-1.5 px-1 text-xs hover:bg-[#4a2516] transition"
+          className="col-span-2 flex items-center justify-center gap-1 bg-[#5C2E1E] text-white rounded-md py-1.5 px-1 text-xs hover:bg-[#4a2516] transition"
         >
           <FaQrcode size={15} />
           QR
         </button>
+
       </div>
+
     </div>
   );
 }

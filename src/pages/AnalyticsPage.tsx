@@ -7,7 +7,7 @@ export default function AnalyticsPage() {
       <SidebarNav />
 
       {/* Main Content */}
-      <div className="flex-1 p-6 bg-gray-50">
+      <div className="flex-1 p-6 bg-gray-50 ">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-3xl font-semibold text-gray-800 mb-2">
             Analytics

@@ -4,6 +4,7 @@ import { FileText, Image as ImageIcon, Trash2, Edit } from "lucide-react";
 import UploadMenuModal from "../components/UploadMenuModal";
 import DeleteMenuModal from "./DeleteMenuModal";
 import EditMenuModal from "./EditMenuModal";
+import QrCodeModal from "./QrCodeModal";
 import { useUpdateMenu } from "../hooks/useUpdateMenu";
 import { toast } from "sonner";
 
@@ -31,6 +32,8 @@ export default function MenuPage() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showQrModal, setShowQrModal] = useState<{ name: string; url: string } | null>(null);
+
 
   const hasMenus = menus.length > 0;
   const { mutateAsync: updateMenu, isPending: updating } = useUpdateMenu();
@@ -260,6 +263,14 @@ export default function MenuPage() {
           initialDescription={selectedMenu.description ?? ""}
         />
       )}
+
+       {showQrModal && (
+          <QrCodeModal
+            onClose={() => setShowQrModal(null)}
+            menuName={showQrModal.name}
+            qrUrl={showQrModal.url}
+          />
+        )}
     </div>
   );
 }

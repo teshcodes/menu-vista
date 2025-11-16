@@ -3,6 +3,7 @@ import SidebarNav from "../components/SidebarNav";
 import UploadMenuModal from "../components/UploadMenuModal";
 import DeleteMenuModal from "../components/DeleteMenuModal";
 import EditMenuModal from "../components/EditMenuModal";
+import QrCodeModal from "../components/QrCodeModal";
 import MenuCard from "../components/MenuCard";
 import { useCreateMenu } from "../hooks/useCreateMenu";
 import { useDeleteMenu } from "../hooks/useDeleteMenu";
@@ -13,7 +14,7 @@ import { toast } from "sonner";
 
 export default function Menu() {
   // --- State ---
-  // const [showTips, setShowTips] = useState(false);
+  const [showTips, setShowTips] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -26,6 +27,12 @@ export default function Menu() {
   const [selectedMenu, setSelectedMenu] = useState<MappedMenu | null>(null);
   const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
   const [selectedMenuName, setSelectedMenuName] = useState<string>("");
+  const [showQrModal, setShowQrModal] = useState<{ name: string; url: string } | null>(null);
+
+
+  // --- Tips ---
+  const toggleTips = () => setShowTips((prev) => !prev);
+  const closeTips = () => setShowTips(false);
 
   const ITEMS_PER_PAGE = 8;
 
@@ -154,10 +161,23 @@ export default function Menu() {
         </button>
         <button
           className="bg-white border border-gray-300 text-gray-800 px-5 py-2.5 rounded-md hover:bg-gray-100 transition"
-          // onClick={() => setShowTips((prev) => !prev)}
+          onClick={toggleTips}
         >
           Tips
         </button>
+
+        {showTips && (
+          <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-80 bg-white shadow-lg rounded-md border border-gray-200 p-4 text-start z-30">
+            <ul className="list-disc list-inside text-sm text-gray-700 space-y-3">
+              <li><b>File size:</b> PDFs under 1MB load fastest.</li>
+              <li><b>Formats:</b> PDF, JPG, PNG supported.</li>
+              <li><b>Naming:</b> Use clear names like “Breakfast”.</li>
+              <li><b>Updating:</b> Replace menu anytime — QR stays linked.</li>
+              <li><b>Readability:</b> Use text ≥12pt for mobile.</li>
+            </ul>
+          </div>
+        )}
+        {showTips && <div className="fixed inset-0 z-20 sm:hidden" onClick={closeTips}></div>}
       </div>
     </div>
   );
@@ -175,12 +195,13 @@ export default function Menu() {
             </span>
           </h2>
 
+
           {/* Filters */}
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 w-1/2">
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="border border-gray-300 rounded-md py-2 pl-3 pr-8 text-sm bg-white"
+              className="border border-gray-300 rounded-md py-2 pl-3 pr-8 text-sm bg-white w-full sm:w-auto"
             >
               <option value="All">All Types</option>
               <option value="PDF">PDF</option>
@@ -190,7 +211,7 @@ export default function Menu() {
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="border border-gray-300 rounded-md py-2 pl-3 pr-8 text-sm bg-white"
+              className="border border-gray-300 rounded-md py-2 pl-3 pr-8 text-sm bg-white w-full sm:w-auto"
             >
               <option value="All">All Categories</option>
               <option value="Breakfast">Breakfast</option>
@@ -203,9 +224,10 @@ export default function Menu() {
               placeholder="Search menu"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="border border-gray-300 rounded-md pl-3 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5C2E1E]"
+              className="border border-gray-300 rounded-md pl-3 pr-4 py-2 text-sm w-full sm:w-auto flex-1 focus:outline-none focus:ring-2 focus:ring-[#5C2E1E]"
             />
           </div>
+
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
@@ -219,7 +241,7 @@ export default function Menu() {
                 fileSize={`${Math.min(menu.fileSize / (1024 * 1024), 10).toFixed(2)} MB`}
                 onView={() => console.log("View menu:", menu.name)}
                 onEdit={() => handleEditMenu(menu)}
-                onQR={() => console.log("Generate QR for:", menu.name)}
+                onQR={() => setShowQrModal({ name: menu.name, url: menu.url ?? "#" })}
                 onDelete={() => handleDeleteMenu(menu.id || "", menu.name)}
               />
             ))
@@ -228,20 +250,7 @@ export default function Menu() {
           )}
         </div>
 
-        {/* Pagination */}
-        {data?.total && data.total > ITEMS_PER_PAGE && (
-          <div className="flex justify-center mt-6 gap-2">
-            {Array.from({ length: Math.ceil(data.total / ITEMS_PER_PAGE) }).map((_, i) => (
-              <button
-                key={i}
-                className={`px-3 py-1 rounded ${currentPage === i + 1 ? "bg-[#5C2E1B] text-white" : "bg-gray-200"}`}
-                onClick={() => setCurrentPage(i + 1)}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
-        )}
+         
       </div>
     );
   };
@@ -261,6 +270,15 @@ export default function Menu() {
         </span>{" "}
         or drag and drop a new menu
       </p>
+
+      {/* Upload Icon Button */}
+      <button
+        onClick={() => setShowUploadModal(true)}
+        aria-label="Upload new menu"
+        className="hidden md:group-hover:flex absolute bottom-4 right-4 items-center justify-center bg-white/60 backdrop-blur-sm shadow-xl rounded-lg p-3 hover:bg-white/70 transition" >
+        <img src="/file-icon.png" alt="Upload" className="w-6 h-6 filter saturate-150" />
+      </button>
+
       {showUploadModal && (
         <UploadMenuModal
           onClose={() => setShowUploadModal(false)}
@@ -304,6 +322,15 @@ export default function Menu() {
             initialName={selectedMenu.name}
             initialDescription={selectedMenu.description}
             initialImageUrl={selectedMenu.imageUrl}
+          />
+        )}
+
+
+        {showQrModal && (
+          <QrCodeModal
+            onClose={() => setShowQrModal(null)}
+            menuName={showQrModal.name}
+            qrUrl={showQrModal.url}
           />
         )}
       </div>

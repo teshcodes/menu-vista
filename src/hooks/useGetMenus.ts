@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getMenus } from "../services/clearEssenceAPI";
+import { toast } from "sonner";
 
 interface GetMenusParams {
   skip?: number;
@@ -42,6 +43,7 @@ export interface MappedMenu {
   description: string;
   imageUrl: string;
   category: string;
+  url?: string;
 }
 
 export interface MenuResult {
@@ -62,6 +64,7 @@ export const useGetMenus = (params?: GetMenusParams) => {
         localStorage.getItem("accessToken");
 
       if (!token) {
+        toast.error("Authentication token is missing. Please log in.");
         throw new Error("No auth token found. Please log in.");
       }
 
