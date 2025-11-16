@@ -1,4 +1,4 @@
- import { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { XMarkIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
@@ -81,6 +81,7 @@ export default function QrCodeModal({
   }
 
   return (
+    // OUTER CONTAINER: Keep fixed for centering and backdrop
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* BACKDROP */}
       <div
@@ -97,8 +98,9 @@ export default function QrCodeModal({
         className="hidden"
       />
 
-      {/* MODAL */}
-      <div className="relative bg-white rounded-xl shadow-xl w-[95%] max-w-5xl z-50 overflow-hidden">
+      {/* MODAL: Added h-[95%] and overflow-y-auto for mobile scrolling. 
+          md:h-auto and md:overflow-hidden maintain the desktop fixed look. */}
+      <div className="relative bg-white rounded-xl shadow-xl w-[95%] max-w-5xl z-50 overflow-hidden h-[95%] md:h-auto overflow-y-auto md:overflow-hidden">
         {/* HEADER */}
         <div className="flex justify-between items-center p-4 border-b border-gray-200">
           <h1 className="text-xl md:text-2xl font-bold text-gray-800">
@@ -110,6 +112,7 @@ export default function QrCodeModal({
         </div>
 
         {/* CONTENT LAYOUT */}
+        {/* On mobile, this will scroll within the constrained modal height */}
         <div className="flex flex-col md:flex-row">
           {/* LEFT SIDE OPTIONS */}
           <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200 p-6 space-y-6">
