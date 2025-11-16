@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { X, Trash2, RotateCcw, Image as ImageIcon } from "lucide-react";
+import { X, Trash2, RotateCcw, Image as ImageIcon, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 interface EditMenuModalProps {
@@ -44,6 +44,7 @@ export default function EditMenuModal({
     setType(initialType);
     setDescription(initialDescription);
     setImageUrl(initialImageUrl);
+    setFile(null); // Clear file state on modal open/initial load
   }, [initialName, initialType, initialDescription, initialImageUrl]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -71,9 +72,10 @@ export default function EditMenuModal({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] ?? null;
     setFile(selectedFile);
-    setImageUrl("");
+    setImageUrl(""); // Clear existing URL if a new file is uploaded
 
     if (selectedFile) {
+      // Simulate upload progress
       let progress = 0;
       const interval = setInterval(() => {
         progress += 10;
@@ -85,14 +87,20 @@ export default function EditMenuModal({
 
   const handleReplaceClick = () => fileInputRef.current?.click();
 
+  // Helper function to check if the current image URL points to a PDF
+  const isPdf = imageUrl && imageUrl.toLowerCase().endsWith(".pdf");
+
   return (
+    // OUTER CONTAINER: Retains fixed positioning for centering and backdrop
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div
         className="absolute inset-0 bg-black/30 backdrop-blur-sm"
         onClick={onClose}
       ></div>
 
-      <div className="relative bg-white rounded-xl shadow-xl w-[90%] max-w-md p-6 z-50">
+      {/* INNER MODAL CONTAINER: max-h-[95vh] and overflow-y-auto applied universally 
+          to ensure scrolling on all constrained viewports (e.g., 1024x768) */}
+      <div className="relative bg-white rounded-xl shadow-xl w-[90%] max-w-md p-6 z-50 max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between mb-4">
           <h2 className="text-lg font-bold text-gray-900">Edit Menu</h2>
@@ -155,22 +163,45 @@ export default function EditMenuModal({
               onChange={handleFileChange}
             />
 
+            {/* CASE 1: No new file selected, but an existing URL is present */}
             {!file && imageUrl ? (
               <div className="border border-gray-200 rounded-md p-3 flex flex-col items-center">
-                <img
-                  src={imageUrl}
-                  alt="Menu Preview"
-                  className="w-full h-48 object-cover rounded-md mb-3"
-                />
+                
+                {isPdf ? (
+                    // RENDER FOR PDF FILE
+                    <div className="w-full h-48 flex flex-col items-center justify-center bg-gray-50 rounded-md mb-3 p-4">
+                        <FileText className="h-10 w-10 text-red-600" />
+                        <p className="mt-2 text-sm font-medium text-gray-800">
+                            **PDF Menu**
+                        </p>
+                        <a 
+                            href={imageUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-[#5C2E1E] underline mt-1 hover:text-[#4b2415]"
+                        >
+                            View Document
+                        </a>
+                    </div>
+                ) : (
+                    // RENDER FOR IMAGE FILE (.jpg, .png, etc.)
+                    <img
+                        src={imageUrl}
+                        alt="Menu Preview"
+                        className="w-full h-48 object-cover rounded-md mb-3"
+                    />
+                )}
+                
                 <button
                   type="button"
                   onClick={handleReplaceClick}
                   className="flex items-center gap-1 text-sm text-gray-600 hover:text-[#5C2E1E] transition"
                 >
-                  <RotateCcw size={14} /> Replace Image
+                  <RotateCcw size={14} /> Replace File
                 </button>
               </div>
             ) : file ? (
+              // CASE 2: New file has been selected (shows upload progress/file name)
               <div className="border border-gray-200 rounded-md p-3 flex items-center justify-between">
                 <div className="ml-3 w-full">
                   <div className="flex items-center justify-between">
@@ -213,6 +244,7 @@ export default function EditMenuModal({
                 </div>
               </div>
             ) : (
+              // CASE 3: No file or URL, show the upload prompt
               <label className="border border-dashed border-gray-300 rounded-md px-4 py-8 text-center block cursor-pointer hover:bg-gray-50 transition">
                 <input
                   type="file"
@@ -225,6 +257,18 @@ export default function EditMenuModal({
                 </p>
               </label>
             )}
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="A brief description of the menu content."
+              rows={3}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5C2E1E]"
+            />
           </div>
 
           {/* Buttons */}
