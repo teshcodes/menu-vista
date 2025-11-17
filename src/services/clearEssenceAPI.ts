@@ -44,16 +44,26 @@ export const logout = async (token: string) => {
 
 /* -------------------- USER PROFILE -------------------- */
 
-export const getBusinessProfile = async (token: string) => {
+export const getUserProfile = async (token: string) => {
   const { data } = await axiosInstance.get("/auth/profile", {
     headers: { Authorization: `Bearer ${token}` },
   });
   return data;
 };
 
+/* -------------------- USER Business PROFILE -------------------- */
+export const getBusinessProfile = async (token: string) => {
+  const { data } = await axiosInstance.get(
+    "/auth/profile",
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return data.data || data; 
+};
+
+// ========= Change Password ========
 export const changePassword = async (
   token: string,
-  payload: { oldPassword: string; newPassword: string }
+  payload: { currentPassword: string; newPassword: string }
 ) => {
   const { data } = await axiosInstance.patch("/user/change-password", payload, {
     headers: { Authorization: `Bearer ${token}` },

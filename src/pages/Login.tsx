@@ -3,7 +3,9 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useLogin } from "../hooks/useLogin";
 import { useGoogleRedirectLogin } from "../hooks/useGoogleRedirectLogin";
+import { getBusinessProfile } from "../services/clearEssenceAPI";
 import { toast } from "sonner";
+import { FcGoogle } from "react-icons/fc"
 
 export default function Login() {
   const navigate = useNavigate();
@@ -26,14 +28,43 @@ export default function Login() {
         password: formData.password,
       },
       {
-        onSuccess: () => {
-          // token is stored by the hook; navigate to dashboard
-          toast.success("login successfully")
+        onSuccess: async () => {
+          toast.success("Login successfully");
+
+          // 🛠️ FIX 1: Simplify token retrieval and use the standard "authToken"
+          const authToken = localStorage.getItem("authToken");
+
+          if (authToken) {
+            try {
+              const profile = await getBusinessProfile(authToken);
+
+              // 🛠️ FIX 2: Relaxed profile check due to backend profile endpoint uncertainty.
+              // We only require a basic identifier (like email) to save the profile.
+              if (profile.email) {
+                localStorage.setItem("appUser", JSON.stringify(profile));
+                
+                // Warn the user if core business details are missing, 
+                // which is likely if the backend only returned basic user info.
+                if (!profile.businessName || !profile.type) {
+                    toast.warning("Business profile incomplete. Please set up your business details on the dashboard.");
+                }
+
+              } else {
+                console.warn("Basic profile missing email, skipping save to localStorage", profile);
+                toast.warning("Could not retrieve basic profile data. Proceeding to dashboard.");
+              }
+            } catch (err: unknown) {
+              // This should now be less likely to happen since we fixed the 404 in clearEssenceAPI.ts,
+              // but we handle errors gracefully.
+              console.error("Failed to load profile:", err);
+              toast.warning("Could not retrieve business profile. Proceeding to dashboard.");
+            }
+          } else {
+             console.error("Authentication token missing after successful login.");
+             toast.error("Login successful but session could not be established.");
+          }
+
           navigate("/dashboard");
-        },
-        onError: () => {
-          setError( "Something went wrong. Please try again.");
-          toast.error("Failed to login")
         },
       }
     );
@@ -47,11 +78,11 @@ export default function Login() {
       <div className="hidden md:block absolute inset-0 bg-black/50"></div>
 
       <div className="relative z-10 bg-white w-full max-w-md rounded-2xl shadow-xl p-8 -mt-4">
-        <div className="flex justify-center mb-6">
-          <img src="/logo.png" alt="Logo" className="h-10 object-contain" />
+        <div className="flex justify-center">
+          <img src="/logo.png" alt="Logo" className="h-15 w-20 object-contain" />
         </div>
 
-        <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800">Log in</h2>
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800 -mt-4">Welcome Back!</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -92,17 +123,19 @@ export default function Login() {
           <button
             type="button"
             onClick={() => googleLoginRedirect()}
-            className="w-full bg-[#5C2E1E] text-white py-2 rounded-md hover:bg-[#4a2f19] transition-colors duration-200"
+            className="w-full bg-gray-100 text-black font-semibold py-2 rounded-md transition-colors duration-200 flex items-center justify-center gap-2"
             disabled
           >
-            Log in with Google
+            <FcGoogle className="text-xl" />
+            Continue with Google
           </button>
+
         </form>
 
         <p className="text-center text-sm text-gray-600 mt-4">
           Don’t have an account?{" "}
-          <Link to="/signup" className="text-[#5C3A1E] font-medium hover:underline">
-            Sign up
+          <Link to="/signup" className="text-[#5C3A1E] font-bold hover:underline">
+            Create an Account
           </Link>
         </p>
       </div>

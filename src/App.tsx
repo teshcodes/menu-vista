@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import ProtectedRoute from "./components/protectedRoute";
 import MenuPage from "./components/MenuPage";
 import { Toaster } from "sonner";
+import { UserProvider } from "./providers/UserProvider";
 
 // Lazy load pages
 const Signup = lazy(() => import("./pages/Signup"));
@@ -44,86 +45,88 @@ const LoadingSpinner = () => (
 
 export default function App() {
   return (
-    <Router>
-      <Suspense fallback={<LoadingSpinner />}>
-        <Routes>
-          {/* Auth Routes */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
+    <UserProvider>
+      <Router>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
+            {/* Auth Routes */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/login" element={<Login />} />
 
-          {/* Google OAuth Callback */}
-          <Route path="/auth/google/callback" element={<GoogleCallback />} />
+            {/* Google OAuth Callback */}
+            <Route path="/auth/google/callback" element={<GoogleCallback />} />
 
-          {/* Protected Routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+            {/* Protected Routes */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/menu"
-            element={
-              <ProtectedRoute>
-                <Menu />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/menu"
+              element={
+                <ProtectedRoute>
+                  <Menu />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/analytics"
-            element={
-              <ProtectedRoute>
-                <AnalyticsPage />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute>
+                  <AnalyticsPage />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/menupage"
-            element={
-              <ProtectedRoute>
-                <MenuPage />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/menupage"
+              element={
+                <ProtectedRoute>
+                  <MenuPage />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* 404 Fallback */}
-          <Route
-            path="*"
-            element={
-              <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-                <h1 className="text-2xl font-semibold text-gray-800">Page Not Found</h1>
-                <p className="text-gray-600">
-                  The page you're looking for doesn't exist.
-                </p>
-                <button
-                  onClick={() => window.history.back()}
-                  className="px-4 py-2 bg-[#5C2E1E] text-white rounded hover:bg-[#4a2f19] transition-colors"
-                >
-                  Go Back
-                </button>
-              </div>
-            }
-          />
-        </Routes>
-      </Suspense>
+            {/* 404 Fallback */}
+            <Route
+              path="*"
+              element={
+                <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+                  <h1 className="text-2xl font-semibold text-gray-800">Page Not Found</h1>
+                  <p className="text-gray-600">
+                    The page you're looking for doesn't exist.
+                  </p>
+                  <button
+                    onClick={() => window.history.back()}
+                    className="px-4 py-2 bg-[#5C2E1E] text-white rounded hover:bg-[#4a2f19] transition-colors"
+                  >
+                    Go Back
+                  </button>
+                </div>
+              }
+            />
+          </Routes>
+        </Suspense>
 
-      {/* Global Notifications */}
-      <Toaster position="top-right" richColors />
-    </Router>
+        {/* Global Notifications */}
+        <Toaster position="top-right" richColors />
+      </Router>
+    </UserProvider>
   );
 }
