@@ -21,84 +21,92 @@ export default function MenuCard({
   onQR,
   onDelete,
 }: MenuCardProps) {
-  // Select icon based on file type
-  const icon = (
-    <img
-      src={
-        fileType === "PDF"
-          ? "/type-icons.png"
-          : fileType === "IMG"
-            ? "/type-icons-2.png"
-            : "/type-icons-3.png"
-      }
-      alt={`${fileType} icon`}
-      className="object-contain"
-    />
-  );
 
   return (
-    <div className="relative bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col justify-between hover:shadow-md transition-shadow duration-200">
-      {/* Header (icon + delete) */}
-      <div className="flex justify-between mb-2">
-        <div className="rounded-lg">{icon}</div>
-        {onDelete && (
-          <button
-            onClick={onDelete}
-            className="text-gray-400 hover:text-red-500 transition"
-          >
-            <FaTrash size={14} />
-          </button>
-        )}
-      </div>
+    <div className="relative">
 
-      {/* File Info */}
-      <div className="flex items-center gap-3 mb-3">
-        <div>
-          <h3
-            className="font-semibold text-gray-900 text-sm mb-2 truncate"
-            title={name} // shows full name on hover
-            style={{ maxWidth: '170px' }} // adjust width as needed
-          >
-            {name}
-          </h3>
+      {/* Glass reflection layer (only visible when hovered) */}
+      <div
+        className="
+     relative bg-white border border-gray-200 rounded-xl shadow-sm p-4
+    flex flex-col justify-between
 
-          <p className="text-xs text-gray-500">
-            {fileType} • {date} • {fileSize}
-          </p>
+    transition-all duration-300
+    hover:scale-[1.04]
+    hover:shadow-xl
+    hover:-translate-y-1
+    hover:z-50
+  "
+      >
+        {/* Reflection Glass Layer */}
+        <div
+          className="
+      absolute -bottom-3 left-2 right-2 h-4
+      opacity-0 group-hover:opacity-100
+      transition-all duration-300
 
+      bg-linear-to-b from-white/20 to-white/0
+      backdrop-blur-md
+      rounded-xl
+      pointer-events-none
+    "
+        ></div>
+
+        {/* Header */}
+        <div className="text-end mb-2">
+          {onDelete && (
+            <button
+              onClick={onDelete}
+              className="text-gray-400 hover:text-red-500 transition"
+            >
+              <FaTrash size={14} />
+            </button>
+          )}
         </div>
-      </div>
 
-      {/* Action Buttons */}
-      <div className="grid grid-cols-2 md:grid-cols-2 gap-2 mt-3">
+        {/* File Info */}
+        <div className="flex items-center gap-3 mb-3">
+          <div>
+            <h3
+              className="font-semibold text-gray-900 text-sm mb-2 truncate"
+              title={name}
+              style={{ maxWidth: '170px' }}
+            >
+              {name}
+            </h3>
 
-        {/* View Button */}
-        <button
-          onClick={onView}
-          className="flex items-center justify-center gap-1 border border-gray-300 rounded-md py-1.5 px-1 text-xs text-gray-700 hover:bg-gray-100 transition"
-        >
-          <FaEye size={15} />
-          View
-        </button>
+            <p className="text-xs text-gray-500">
+              {fileType} • {date} • {fileSize}
+            </p>
+          </div>
+        </div>
 
-        {/* Edit Button */}
-        <button
-          onClick={onEdit}
-          className="flex items-center justify-center gap-1 border border-gray-300 rounded-md py-1.5 px-1 text-xs text-gray-700 hover:bg-gray-100 transition"
-        >
-          <FaEdit size={15} />
-          Edit
-        </button>
+        {/* Buttons */}
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-2 mt-3">
+          <button
+            onClick={onView}
+            className="flex items-center justify-center gap-1 border border-gray-300 rounded-md py-1.5 px-1 text-xs text-gray-700 hover:bg-gray-100 transition"
+          >
+            <FaEye size={15} />
+            View
+          </button>
 
-        {/* QR Button — takes full width on md screens */}
-        <button
-          onClick={onQR}
-          className="col-span-2 flex items-center justify-center gap-1 bg-[#5C2E1E] text-white rounded-md py-1.5 px-1 text-xs hover:bg-[#4a2516] transition"
-        >
-          <FaQrcode size={15} />
-          QR
-        </button>
+          <button
+            onClick={onEdit}
+            className="flex items-center justify-center gap-1 border border-gray-300 rounded-md py-1.5 px-1 text-xs text-gray-700 hover:bg-gray-100 transition"
+          >
+            <FaEdit size={15} />
+            Edit
+          </button>
 
+          <button
+            onClick={onQR}
+            className="col-span-2 flex items-center justify-center gap-1 bg-[#5C2E1E] text-white rounded-md py-1.5 px-1 text-xs hover:bg-[#4a2516] transition"
+          >
+            <FaQrcode size={15} />
+            QR
+          </button>
+        </div>
       </div>
 
     </div>

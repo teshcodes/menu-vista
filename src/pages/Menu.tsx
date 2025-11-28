@@ -57,68 +57,128 @@ export default function Menu() {
   if (isError) return <p className="p-6 text-red-600">Failed to fetch menus. Please check your token.</p>;
 
   // --- Handlers ---
-  const handleSaveMenu = (menuData: { name: string; file: File; type: string; description?: string; category?: string }) => {
-    if (!menuData.file) {
-      toast.error("Please upload a menu file.");
-      return;
+  const handleSaveMenu = (menuData: {
+  menuName: string;
+  restaurant: { foodMenu: File | null; drinkMenu: File | null };
+  spa: { spaMenu: File | null };
+  reviewLink: string; // optional, if backend doesn’t need it you can omit
+}) => {
+  const { foodMenu, drinkMenu } = menuData.restaurant;
+  const { spaMenu } = menuData.spa;
+
+  // Ensure at least one file is uploaded
+  if (!foodMenu && !drinkMenu && !spaMenu) {
+    toast.error("Please upload at least one menu file (Food, Drink, or Spa).");
+    return;
+  }
+
+  // Max file size validation
+  const MAX_FILE_SIZE_MB = 10;
+  const allFiles = [foodMenu, drinkMenu, spaMenu];
+  const oversizedFile = allFiles.find(
+    (f) => f && f.size / (1024 * 1024) > MAX_FILE_SIZE_MB
+  );
+  if (oversizedFile) {
+    toast.error(`File ${oversizedFile.name} exceeds ${MAX_FILE_SIZE_MB} MB`);
+    return;
+  }
+
+  const token =
+    localStorage.getItem("authToken") ??
+    localStorage.getItem("token");
+  if (!token) {
+    toast.error("No auth token found.");
+    return;
+  }
+
+  // Build FormData exactly as backend expects
+  const formData = new FormData();
+  formData.append("name", menuData.menuName);
+
+  if (foodMenu) formData.append("foodMenuFile", foodMenu);
+  if (drinkMenu) formData.append("drinkMenuFile", drinkMenu);
+  if (spaMenu) formData.append("spaMenuFile", spaMenu);
+
+  createMenu(
+    { menuData: formData, token },
+    {
+      onSuccess: () => {
+        setShowUploadModal(false);
+        toast.success("Menu uploaded successfully!");
+        refetch();
+      },
+      onError: () => toast.error("Failed to upload menu."),
     }
+  );
+};
 
-    const MAX_FILE_SIZE_MB = 10;
-    if (menuData.file.size / (1024 * 1024) > MAX_FILE_SIZE_MB) {
-      toast.error(`File size should not exceed ${MAX_FILE_SIZE_MB} MB`);
-      return;
-    }
-
-    const token = localStorage.getItem("authToken") ?? localStorage.getItem("token");
-    const formData = new FormData();
-    formData.append("name", menuData.name);
-    formData.append("type", menuData.type);
-    formData.append("file", menuData.file);
-    if (menuData.description) formData.append("description", menuData.description);
-    if (menuData.category) formData.append("category", menuData.category);
-
-    createMenu(
-      { menuData: formData, token },
-      {
-        onSuccess: () => {
-          setShowUploadModal(false);
-          toast.success("Menu uploaded successfully!");
-          refetch();
-        },
-        onError: () => toast.error("Failed to upload menu."),
-      }
-    );
-  };
 
   const handleEditMenu = (menu: MappedMenu) => {
     setSelectedMenu(menu);
     setShowEditModal(true);
   };
 
-  const handleSaveEdit = (updatedData: { name: string; file?: File | null; location?: string; description?: string; category?: string }) => {
-    if (!selectedMenu) return;
+const handleSaveEdit = (updatedData: {
+  menuName: string;
+  restaurant: { foodMenu: File | null; drinkMenu: File | null };
+  spa: { spaMenu: File | null };
+  reviewLink?: string;
+}) => {
+  const { foodMenu, drinkMenu } = updatedData.restaurant;
+  const { spaMenu } = updatedData.spa;
 
-    const token = localStorage.getItem("authToken") ?? localStorage.getItem("token") ?? localStorage.getItem("accessToken");
-    const formData = new FormData();
-    formData.append("name", updatedData.name || selectedMenu.name);
-    if (updatedData.category) formData.append("category", updatedData.category);
-    if (updatedData.description) formData.append("description", updatedData.description);
-    if (updatedData.location) formData.append("location", updatedData.location || "");
-    if (updatedData.file) formData.append("file", updatedData.file);
+  // 1️⃣ Ensure at least one file is uploaded
+  if (!foodMenu && !drinkMenu && !spaMenu) {
+    toast.error("Please upload at least one menu file (Food, Drink, or Spa).");
+    return;
+  }
 
-    updateMenu(
-      { id: selectedMenu.id!, data: formData, token },
-      {
-        onSuccess: () => {
-          toast.success("Menu updated successfully!");
-          setShowEditModal(false);
-          setSelectedMenu(null);
-          refetch();
-        },
-        onError: () => toast.error("Failed to update menu. Please check your token or try again."),
-      }
-    );
-  };
+  // 2️⃣ Max file size validation
+  const MAX_FILE_SIZE_MB = 10;
+  const allFiles = [foodMenu, drinkMenu, spaMenu];
+  const oversizedFile = allFiles.find(f => f && f.size / (1024 * 1024) > MAX_FILE_SIZE_MB);
+
+  if (oversizedFile) {
+    toast.error(`File "${oversizedFile.name}" exceeds ${MAX_FILE_SIZE_MB} MB`);
+    return;
+  }
+
+  // 3️⃣ Retrieve auth token
+  const token = localStorage.getItem("authToken") ?? localStorage.getItem("token");
+  if (!token) {
+    toast.error("No auth token found.");
+    return;
+  }
+
+  // 4️⃣ Build FormData exactly as backend expects
+  const formData = new FormData();
+  formData.append("name", updatedData.menuName);
+  if (foodMenu) formData.append("foodMenuFile", foodMenu);
+  if (drinkMenu) formData.append("drinkMenuFile", drinkMenu);
+  if (spaMenu) formData.append("spaMenuFile", spaMenu);
+  if (updatedData.reviewLink) formData.append("reviewLink", updatedData.reviewLink);
+
+  // 5️⃣ Call API
+  if (!selectedMenu?.id) {
+    toast.error("Selected menu ID is missing.");
+    return;
+  }
+
+  updateMenu(
+    { id: selectedMenu.id, data: formData, token },
+    {
+      onSuccess: () => {
+        toast.success("Menu updated successfully!");
+        setShowEditModal(false);
+        setSelectedMenu(null);
+        refetch(); // refresh list or data
+      },
+      onError: () =>
+        toast.error("Failed to update menu. Please check your token or try again."),
+    }
+  );
+};
+
 
   const handleDeleteMenu = (menuId: string, menuName: string) => {
     setSelectedMenuId(menuId);
@@ -230,7 +290,7 @@ export default function Menu() {
 
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ">
           {menus.length > 0 ? (
             menus.map((menu) => (
               <MenuCard
@@ -249,8 +309,6 @@ export default function Menu() {
             renderEmptyState()
           )}
         </div>
-
-         
       </div>
     );
   };
@@ -319,12 +377,9 @@ export default function Menu() {
             onClose={() => setShowEditModal(false)}
             onSave={handleSaveEdit}
             isSaving={updating}
-            initialName={selectedMenu.name}
-            initialDescription={selectedMenu.description}
-            initialImageUrl={selectedMenu.imageUrl}
+             
           />
         )}
-
 
         {showQrModal && (
           <QrCodeModal

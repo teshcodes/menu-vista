@@ -13,7 +13,7 @@ type UpdateMenuVariables = {
 export const useUpdateMenu = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async (variables: UpdateMenuVariables) => {
       const { id, data, token: providedToken } = variables;
       const token =
@@ -38,4 +38,9 @@ export const useUpdateMenu = () => {
       toast.error("Failed to update menu. Please try again.");
     },
   });
+
+  return {
+    ...mutation,
+    isLoading: mutation.status === "pending", 
+  };
 };

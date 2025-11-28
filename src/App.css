@@ -1,1 +1,29 @@
 @import "tailwindcss";
+
+
+/* remove native scrollbars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* iOS-style smooth scroll momentum */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* premium fade effect */
+.scroll-fade {
+  opacity: 0;
+  animation: fadeIn 0.35s ease forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+
