@@ -21,7 +21,6 @@ interface Menu {
 interface NewMenu {
   name?: string;
   type?: "PDF" | "IMG";
-  file?: File;
 }
 
 export default function MenuPage() {
@@ -33,7 +32,6 @@ export default function MenuPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState<{ name: string; url: string } | null>(null);
-
 
   const hasMenus = menus.length > 0;
   const { mutateAsync: updateMenu, isPending: updating } = useUpdateMenu();
@@ -50,9 +48,7 @@ export default function MenuPage() {
         day: "numeric",
         year: "numeric",
       }),
-      size: newMenu.file
-        ? `${(newMenu.file.size / (1024 * 1024)).toFixed(1)}MB`
-        : "0.7MB",
+      size: "0.7MB", // dummy size since we are not handling files
     };
 
     setMenus((prev) => [dummyMenu, ...prev]);
@@ -80,37 +76,25 @@ export default function MenuPage() {
   };
 
   const handleQRCode = (menu: Menu) => {
-    console.log("Generating QR code for:", menu.name);
+    setShowQrModal({ name: menu.name, url: `/qr/${menu.id}` });
   };
 
   /* -------------------- UPDATE MENU -------------------- */
 
   const handleSaveEdit = async (menuData: {
-    name: string;
-    file: File | null;
+    menuName: string;
     location?: string;
     description?: string;
   }) => {
     if (!selectedMenu) return;
 
-    const formData = new FormData();
-    formData.append("name", menuData.name);
-    formData.append("description", menuData.description ?? "");
-    formData.append(
-      "imageUrl",
-      menuData.file ? menuData.file.name : selectedMenu.name
-    );
-    if (menuData.location) formData.append("location", menuData.location);
-    if (menuData.file)
-      formData.append("image", menuData.file, menuData.file.name);
-
     try {
-      const res = await updateMenu({ id: selectedMenu.id, data: formData });
-      console.log("Updated menu:", res);
+      // optional backend call
+      await updateMenu({ id: selectedMenu.id, data: menuData });
 
       const updatedMenu: Menu = {
         ...selectedMenu,
-        name: menuData.name,
+        name: menuData.menuName,
         location: menuData.location,
         description: menuData.description,
       };
@@ -120,15 +104,11 @@ export default function MenuPage() {
       );
 
       closeAllModals();
+      toast.success("Menu updated successfully!");
     } catch (error) {
-      if (error instanceof Error) {
-        console.error("Failed to update menu:", error.message);
-      } else {
-        console.error("Failed to update menu:", error);
-      }
-      toast.error("Failed to update menu. See console for details.");
+      console.error("Failed to update menu:", error);
+      toast.error("Failed to update menu.");
     }
-
   };
 
   /* -------------------- HELPERS -------------------- */
@@ -146,8 +126,7 @@ export default function MenuPage() {
         <div className="text-center py-16">
           <h1 className="text-2xl font-semibold text-gray-800 mb-2">Menus</h1>
           <p className="text-gray-600 mb-6">
-            Upload a PDF or image of your menu. We’ll generate a menu link and
-            QR code automatically.
+            Upload a PDF or image of your menu. We’ll generate a menu link and QR code automatically.
           </p>
           <button
             onClick={() => setShowUploadModal(true)}
@@ -162,8 +141,7 @@ export default function MenuPage() {
             <div>
               <h1 className="text-2xl font-semibold text-gray-800">Menus</h1>
               <p className="text-sm text-gray-500">
-                Upload a PDF or image of your menu. We’ll generate a link and QR
-                code automatically.
+                Upload a PDF or image of your menu. We’ll generate a link and QR code automatically.
               </p>
             </div>
             <button
@@ -232,15 +210,13 @@ export default function MenuPage() {
       )}
 
       {/* -------------------- MODALS -------------------- */}
-
       {showUploadModal && (
         <UploadMenuModal
           onClose={() => setShowUploadModal(false)}
           onSave={(data) =>
             handleAddMenu({
-              name: data.name,
-              file: data.file || undefined,
-              type: data.file?.type.includes("pdf") ? "PDF" : "IMG",
+              name: data.menuName,
+              type: "IMG",
             })
           }
         />
@@ -260,17 +236,16 @@ export default function MenuPage() {
           onSave={handleSaveEdit}
           isSaving={updating}
           initialName={selectedMenu.name}
-          initialDescription={selectedMenu.description ?? ""}
         />
       )}
 
-       {showQrModal && (
-          <QrCodeModal
-            onClose={() => setShowQrModal(null)}
-            menuName={showQrModal.name}
-            qrUrl={showQrModal.url}
-          />
-        )}
+      {showQrModal && (
+        <QrCodeModal
+          onClose={() => setShowQrModal(null)}
+          menuName={showQrModal.name}
+          qrUrl={showQrModal.url}
+        />
+      )}
     </div>
   );
 }
