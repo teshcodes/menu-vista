@@ -12,7 +12,6 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { useUser } from "../hooks/useUser";
 import { auth, signOut } from "../lib/firebase"; 
 import { useBusinessProfile } from "../hooks/useBusinessProfile";
 import { useUserProfile } from "../hooks/useUserProfile";
@@ -48,7 +47,7 @@ export default function SidebarNav() {
   const { data: userProfile } = useUserProfile();
   const { data: businessProfile, isLoading } = useBusinessProfile();
 
-  const { profileImage } = useUser();
+  const profileImage = businessProfile?.image || businessProfile?.logo || userProfile?.data?.profileImage || null;
 
   const businessProfileName = businessProfile?.businessName || businessProfile?.name;
   const userProfileName = userProfile?.data?.name; 

@@ -119,7 +119,7 @@ export default function Login() {
                 className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 transition"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                {showPassword ? <FaEye size={16} /> : <FaEyeSlash size={16} />}
               </button>
             </div>
 
@@ -131,7 +131,7 @@ export default function Login() {
             className="w-full bg-[#5C2E1E] text-white py-2 rounded-md hover:bg-[#4a2f19] transition-colors duration-200"
             disabled={isLoading}
           >
-            {isLoading ? "Logging in..." : "Log in"}
+            {isLoading ? "Authenticating..." : "Log in"}
           </button>
           <button
             type="button"

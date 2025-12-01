@@ -1,4 +1,3 @@
-// pages/MenuPage.tsx
 import { useState } from "react";
 import { FileText, Image as ImageIcon, Trash2, Edit } from "lucide-react";
 import UploadMenuModal from "../components/UploadMenuModal";
@@ -162,8 +161,10 @@ export default function MenuPage() {
                   <div className="flex items-center gap-2">
                     {menu.type === "PDF" ? (
                       <FileText size={18} className="text-[#5C2E1E]" />
-                    ) : (
+                    ) : menu.type === "IMG" ? (
                       <ImageIcon size={18} className="text-[#5C2E1E]" />
+                    ) : (
+                      <div className="text-xs font-semibold px-2 py-0.5 rounded bg-yellow-200 text-yellow-800">MIXED</div>
                     )}
                     <h2 className="text-sm font-medium text-gray-800">
                       {menu.name}
