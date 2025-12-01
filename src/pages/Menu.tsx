@@ -215,7 +215,7 @@ export default function Menu() {
       </p>
 
       <div className="flex flex-col sm:flex-row gap-3 items-center relative">
-        <button onClick={() => setShowUploadModal(true)} className="flex items-center justify-center gap-2 bg-[#5C2E1B] text-white px-6 py-3 rounded-md font-semibold hover:bg-[#4b2415] transition">
+        <button onClick={() => setShowUploadModal(true)} className="flex items-center justify-center gap-2 bg-[#219ebc] text-white px-6 py-3 rounded-md font-semibold hover:bg-[#00b4d8] transition">
           <span className="text-lg font-bold">+</span> Upload my first menu
         </button>
 
@@ -277,7 +277,7 @@ export default function Menu() {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-gray-800 mb-4">
           My Menus{" "}
-          <span className="ml-2 text-xs bg-[#EAD7C4] text-[#5C2E1E] px-2 py-0.5 rounded-md">
+          <span className="ml-2 text-xs bg-[#90e0ef] text-[#0096c7] px-2 py-0.5 rounded-md">
             {data?.menus?.length ?? 0}
           </span>
         </h2>
@@ -338,11 +338,11 @@ export default function Menu() {
   // --- Upload Section ---
   const renderUploadSection = () => (
     <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:bg-gray-50 transition mb-10 group">
-      <div className="flex items-center justify-center h-full w-full mb-3">
+      <div className="flex items-center text-[#219ebc] justify-center h-full w-full mb-3">
         <img src="/upload-cloud.png" alt="Upload Cloud" />
       </div>
       <p className="text-gray-500">
-        <span className="text-[#5C2E1B] cursor-pointer hover:underline" onClick={() => setShowUploadModal(true)}>
+        <span className="text-[#219ebc] cursor-pointer hover:underline" onClick={() => setShowUploadModal(true)}>
           Click to Upload
         </span>{" "}
         or drag and drop a new menu

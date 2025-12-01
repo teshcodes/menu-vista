@@ -143,7 +143,7 @@ export default function SidebarNav() {
         <div>
           <div className="flex items-center justify-between p-4" onClick={() => navigate("/settings")}>
             <div className="flex items-center gap-3">
-              <div className="bg-[#5C2E1E]/10 p-2 rounded-full">
+              <div className="bg-[#caf0f8] p-2 rounded-full">
                 <ProfileAvatar imageUrl={profileImage} size={22} />
               </div>
               <div>
@@ -166,7 +166,7 @@ export default function SidebarNav() {
                   navigate(item.path);
                   setSidebarOpen(false);
                 }}
-                className="w-full flex items-center gap-3 px-5 py-3 text-gray-700 rounded-lg hover:bg-[#5C2E1E] hover:text-white transition-colors"
+                className="w-full flex items-center gap-3 px-5 py-3 text-gray-700 rounded-lg hover:bg-[#219ebc] hover:text-white transition-colors"
               >
                 <span>{item.icon}</span>
                 <span className="font-medium">{item.label}</span>
@@ -178,7 +178,7 @@ export default function SidebarNav() {
         {/* --- Footer / Account Dropdown --- */}
         <div className="border-t p-4 flex items-center justify-between relative" ref={dropdownRef}>
           <div className="flex items-center gap-3">
-            <div className="bg-[#5C2E1E]/10 p-2 rounded-full">
+            <div className="bg-[#caf0f8] p-2 rounded-full">
               <ProfileAvatar imageUrl={profileImage} size={22} />
             </div>
             <div>
@@ -194,7 +194,7 @@ export default function SidebarNav() {
           {/* --- Dropdown Menu --- */}
           <div className="relative">
             <MoreVertical
-              className="text-gray-500 cursor-pointer hover:text-[#5C2E1E]"
+              className="text-gray-500 cursor-pointer hover:text-[#219ebc]"
               size={18}
               onClick={() => setShowMenu(!showMenu)}
             />
@@ -203,7 +203,7 @@ export default function SidebarNav() {
               <div className="absolute bottom-11 -right-4 md:bottom-14 md:left-0 bg-white shadow-lg rounded-lg py-2 w-56 z-50 border">
                 {/* Dropdown Header */}
                 <div className="flex items-center gap-3 px-4 py-2 border-b">
-                  <div className="bg-[#5C2E1E]/10 p-2 rounded-full">
+                  <div className="bg-[#caf0f8] p-2 rounded-full">
                     <ProfileAvatar imageUrl={profileImage} size={22} />
                   </div>
                   <div>

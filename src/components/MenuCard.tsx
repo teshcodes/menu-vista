@@ -39,7 +39,7 @@ export default function MenuCard({
 
   return (
     <div className="relative group">
-      <div className="relative bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col justify-between
+      <div className="relative bg-[#caf0f8] border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col justify-between
         transition-all duration-300 hover:scale-[1.04] hover:shadow-xl hover:-translate-y-1 hover:z-50">
 
         {/* Header */}
@@ -88,7 +88,7 @@ export default function MenuCard({
             <FaEdit size={15} /> Edit
           </button>
 
-          <button onClick={onQR} className="col-span-2 flex items-center justify-center gap-1 bg-[#5C2E1E] text-white rounded-md py-1.5 px-1 text-xs hover:bg-[#4a2516] transition">
+          <button onClick={onQR} className="col-span-2 flex items-center justify-center gap-1 bg-[#219ebc] text-white rounded-md py-1.5 px-1 text-xs hover:bg-[#4a2516] transition">
             <FaQrcode size={15} /> QR
           </button>
         </div>
